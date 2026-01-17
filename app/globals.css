@@ -1,26 +1,331 @@
 @import "tailwindcss";
 
+/* ============================================
+   DESIGN TOKENS - Based on Figma Design System
+   Built on Untitled UI with Neura-specific semantic tokens
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ============================================
+     FONT FAMILIES
+     ============================================ */
+  --font-family-display: var(--font-nunito), "Nunito", sans-serif;
+  --font-family-body: var(--font-nunito), "Nunito", sans-serif;
+
+  /* ============================================
+     COLORS - Brand Colors
+     ============================================ */
+  --colors-brand-600: #0d9488;
+  --colors-brand-500: #14b8a6;
+  --colors-brand-solid: #0d9488;
+  --colors-foreground-fg-brand-primary-600: #0d9488;
+  --colors-foreground-fg-brand-secondary-500: #14b8a6;
+  --colors-text-text-brand-tertiary-600: #0d9488;
+
+  /* ============================================
+     COLORS - Background Colors
+     ============================================ */
+  --colors-background-bg-primary: #ffffff;
+  --colors-background-bg-primary-alt: #ffffff;
+  --colors-background-bg-secondary: #fafafa;
+  --colors-background-bg-secondary-subtle: #fdfdfd;
+  --colors-background-bg-brand-solid: #0d9488;
+  --colors-background-bg-success-secondary: #dcfae6;
+  --colors-background-bg-error-secondary: #fee4e2;
+
+  /* ============================================
+     COLORS - Text Colors
+     ============================================ */
+  --colors-text-text-primary-900: #181d27;
+  --colors-text-text-secondary-700: #414651;
+  --colors-text-text-quaternary-500: #717680;
+  --colors-text-text-white: #ffffff;
+
+  /* ============================================
+     COLORS - Border Colors
+     ============================================ */
+  --colors-border-border-primary: #d5d7da;
+  --colors-border-border-secondary: #e9eaeb;
+
+  /* ============================================
+     COLORS - Foreground Colors
+     ============================================ */
+  --colors-foreground-fg-primary-900: #181d27;
+  --colors-foreground-fg-quaternary-400: #a4a7ae;
+
+  /* ============================================
+     COLORS - Utility Colors
+     ============================================ */
+  --component-colors-utility-gray-200: #e9eaeb;
+  --component-colors-utility-gray-300: #d5d7da;
+  --component-colors-utility-gray-600: #535862;
+  --component-colors-utility-fuchsia-300: #eeaafd;
+  --component-colors-utility-brand-500: #14b8a6;
+
+  /* ============================================
+     COLORS - Icon Colors
+     ============================================ */
+  --component-colors-components-icons-featured-icon-light-fg-success: #079455;
+  --component-colors-components-icons-featured-icon-light-fg-error: #d92d20;
+
+  /* ============================================
+     SPACING - Semantic Spacing Tokens
+     ============================================ */
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --container-padding-desktop: 32px;
+  --container-max-width-desktop: 1280px;
+
+  /* ============================================
+     BORDER RADIUS - Semantic Radius Tokens
+     ============================================ */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-xl: 12px;
+  --radius-4xl: 24px;
+  --radius-full: 9999px;
+
+  /* ============================================
+     TYPOGRAPHY - Font Sizes
+     ============================================ */
+  --font-size-display-md: 36px;
+  --font-size-display-sm: 30px;
+  --font-size-display-xs: 24px;
+  --font-size-text-lg: 18px;
+  --font-size-text-md: 16px;
+  --font-size-text-sm: 14px;
+  --font-size-text-xs: 12px;
+
+  /* ============================================
+     TYPOGRAPHY - Line Heights
+     ============================================ */
+  --line-height-display-md: 44px;
+  --line-height-display-sm: 38px;
+  --line-height-display-xs: 32px;
+  --line-height-text-lg: 28px;
+  --line-height-text-md: 24px;
+  --line-height-text-sm: 20px;
+  --line-height-text-xs: 18px;
+
+  /* ============================================
+     TYPOGRAPHY - Font Weights
+     ============================================ */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ============================================
+     TYPOGRAPHY - Letter Spacing
+     ============================================ */
+  --letter-spacing-display-md: -0.72px;
+
+  /* ============================================
+     SHADOWS - Shadow Tokens
+     ============================================ */
+  --colors-effects-shadows-shadow-xs: rgba(20, 184, 166, 0.05);
+  --colors-effects-shadows-shadow-sm-01: rgba(20, 184, 166, 0.1);
+  --colors-effects-shadows-shadow-sm-02: rgba(20, 184, 166, 0.1);
+  --colors-effects-shadows-shadow-skeumorphic-inner: rgba(20, 184, 166, 0.05);
+  --colors-effects-shadows-shadow-skeumorphic-inner-border: rgba(20, 184, 166, 0.18);
+
+  /* ============================================
+     LEGACY COMPATIBILITY
+     ============================================ */
+  --background: var(--colors-background-bg-primary);
+  --foreground: var(--colors-text-text-primary-900);
 }
 
+/* ============================================
+   DARK MODE TOKENS
+   ============================================ */
+.dark {
+  /* Background Colors - Dark Mode */
+  --colors-background-bg-primary: #0a0a0a;
+  --colors-background-bg-primary-alt: #0a0a0a;
+  --colors-background-bg-secondary: #141414;
+  --colors-background-bg-secondary-subtle: #1a1a1a;
+  --colors-background-bg-brand-solid: #0d9488;
+  --colors-background-bg-success-secondary: #1a3a2a;
+  --colors-background-bg-error-secondary: #3a1a1a;
+
+  /* Text Colors - Dark Mode */
+  --colors-text-text-primary-900: #ededed;
+  --colors-text-text-secondary-700: #b8b8b8;
+  --colors-text-text-quaternary-500: #717680;
+  --colors-text-text-white: #ffffff;
+  --colors-text-text-brand-tertiary-600: #14b8a6;
+
+  /* Border Colors - Dark Mode */
+  --colors-border-border-primary: #2a2a2a;
+  --colors-border-border-secondary: #1f1f1f;
+
+  /* Foreground Colors - Dark Mode */
+  --colors-foreground-fg-primary-900: #ededed;
+  --colors-foreground-fg-quaternary-400: #717680;
+
+  /* Utility Colors - Dark Mode */
+  --component-colors-utility-gray-200: #2a2a2a;
+  --component-colors-utility-gray-300: #1f1f1f;
+  --component-colors-utility-gray-600: #b8b8b8;
+
+  /* Legacy Compatibility */
+  --background: var(--colors-background-bg-primary);
+  --foreground: var(--colors-text-text-primary-900);
+}
+
+/* ============================================
+   TAILWIND THEME CONFIGURATION
+   Maps design tokens to Tailwind utilities
+   ============================================ */
 @theme inline {
+  /* Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
+  /* Brand Colors */
+  --color-brand-600: var(--colors-brand-600);
+  --color-brand-500: var(--colors-brand-500);
+  --color-brand-solid: var(--colors-brand-solid);
+  
+  /* Background Colors */
+  --color-bg-primary: var(--colors-background-bg-primary);
+  --color-bg-primary-alt: var(--colors-background-bg-primary-alt);
+  --color-bg-secondary: var(--colors-background-bg-secondary);
+  --color-bg-secondary-subtle: var(--colors-background-bg-secondary-subtle);
+  --color-bg-brand-solid: var(--colors-background-bg-brand-solid);
+  --color-bg-success-secondary: var(--colors-background-bg-success-secondary);
+  --color-bg-error-secondary: var(--colors-background-bg-error-secondary);
+  
+  /* Text Colors */
+  --color-text-primary-900: var(--colors-text-text-primary-900);
+  --color-text-secondary-700: var(--colors-text-text-secondary-700);
+  --color-text-quaternary-500: var(--colors-text-text-quaternary-500);
+  --color-text-white: var(--colors-text-text-white);
+  --color-text-brand-tertiary-600: var(--colors-text-text-brand-tertiary-600);
+  
+  /* Border Colors */
+  --color-border-primary: var(--colors-border-border-primary);
+  --color-border-secondary: var(--colors-border-border-secondary);
+  
+  /* Foreground Colors */
+  --color-fg-primary-900: var(--colors-foreground-fg-primary-900);
+  --color-fg-quaternary-400: var(--colors-foreground-fg-quaternary-400);
+  --color-fg-brand-primary-600: var(--colors-foreground-fg-brand-primary-600);
+  --color-fg-brand-secondary-500: var(--colors-foreground-fg-brand-secondary-500);
+  
+  /* Utility Colors */
+  --color-utility-gray-200: var(--component-colors-utility-gray-200);
+  --color-utility-gray-300: var(--component-colors-utility-gray-300);
+  --color-utility-gray-600: var(--component-colors-utility-gray-600);
+  --color-utility-fuchsia-300: var(--component-colors-utility-fuchsia-300);
+  --color-utility-brand-500: var(--component-colors-utility-brand-500);
+  
+  /* Icon Colors */
+  --color-icon-success: var(--component-colors-components-icons-featured-icon-light-fg-success);
+  --color-icon-error: var(--component-colors-components-icons-featured-icon-light-fg-error);
+  
+  /* Fonts */
+  --font-sans: var(--font-family-body);
+  --font-display: var(--font-family-display);
+  
+  /* Spacing */
+  --spacing-xxs: var(--spacing-xxs);
+  --spacing-xs: var(--spacing-xs);
+  --spacing-md: var(--spacing-md);
+  --spacing-lg: var(--spacing-lg);
+  --spacing-xl: var(--spacing-xl);
+  
+  /* Border Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-xl: var(--radius-xl);
+  --radius-4xl: var(--radius-4xl);
+  --radius-full: var(--radius-full);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ============================================
+   BASE STYLES
+   ============================================ */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-family-body);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Display Typography */
+.text-display-md {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-display-md);
+  line-height: var(--line-height-display-md);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display-md);
+}
+
+.text-display-sm {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-display-sm);
+  line-height: var(--line-height-display-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.text-display-xs {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-display-xs);
+  line-height: var(--line-height-display-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Body Typography */
+.text-lg {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text-lg);
+  line-height: var(--line-height-text-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.text-md {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text-md);
+  line-height: var(--line-height-text-md);
+}
+
+.text-sm {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text-sm);
+  line-height: var(--line-height-text-sm);
+}
+
+.text-xs {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text-xs);
+  line-height: var(--line-height-text-xs);
+}
+
+/* Font Weight Utilities */
+.font-regular {
+  font-weight: var(--font-weight-regular);
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold);
 }
