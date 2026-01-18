@@ -14,6 +14,7 @@ interface InsightGenerationModalProps {
   isOpen: boolean
   onClose: () => void
   onComplete: () => void
+  triggeredAt?: number // UTC milliseconds timestamp when trigger was called
 }
 
 type StepStatus = 'completed' | 'active' | 'pending'
@@ -22,6 +23,7 @@ export default function InsightGenerationModal({
   isOpen,
   onClose,
   onComplete,
+  triggeredAt,
 }: InsightGenerationModalProps) {
   // Start with optimistic state - show "Connecting" immediately
   const [status, setStatus] = useState<SyncStatusResponse | null>(() => ({
@@ -32,6 +34,9 @@ export default function InsightGenerationModal({
   }))
   const [notifyWhenReady, setNotifyWhenReady] = useState(false)
   const [pollCount, setPollCount] = useState(0)
+  
+  // Use provided trigger timestamp or current time as fallback
+  const triggerTimestamp = triggeredAt || Date.now()
 
   useEffect(() => {
     if (!isOpen) {
@@ -57,20 +62,47 @@ export default function InsightGenerationModal({
 
         // Stop polling if completed or failed
         if (response.sync_status === 'COMPLETED') {
-          if (pollInterval) clearInterval(pollInterval)
-          // Small delay before closing to show completion state
-          setTimeout(() => {
-            onComplete()
-            if (notifyWhenReady) {
-              // Show browser notification if permission granted
-              if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Insights Ready', {
-                  body: 'Your financial insights are now available.',
-                  icon: '/favicon.ico',
-                })
+          // Validate that this completion is from AFTER we triggered
+          // This prevents accepting stale COMPLETED status from previous generation
+          let isFreshCompletion = false
+          
+          if (response.updated_at) {
+            // Parse ISO timestamp to UTC milliseconds for safe comparison
+            // ISO strings are timezone-aware, Date.parse handles them correctly
+            const statusUpdatedAt = new Date(response.updated_at).getTime()
+            
+            // Only accept COMPLETED if it's from AFTER we triggered
+            // Add 1 second buffer to account for clock skew and processing time
+            isFreshCompletion = statusUpdatedAt >= triggerTimestamp - 1000
+          } else {
+            // No updated_at timestamp - treat as fresh completion (fallback)
+            // This shouldn't happen, but handle gracefully
+            isFreshCompletion = true
+          }
+          
+          if (isFreshCompletion) {
+            // This is a fresh completion - close modal
+            if (pollInterval) clearTimeout(pollInterval)
+            // Small delay before closing to show completion state
+            setTimeout(() => {
+              onComplete()
+              if (notifyWhenReady) {
+                // Show browser notification if permission granted
+                if ('Notification' in window && Notification.permission === 'granted') {
+                  new Notification('Insights Ready', {
+                    body: 'Your financial insights are now available.',
+                    icon: '/favicon.ico',
+                  })
+                }
               }
-            }
-          }, 1500)
+            }, 1500)
+          } else {
+            // This is stale completion from previous run - ignore and keep polling
+            // Continue polling with adaptive interval
+            const interval = pollCounter < 3 ? 2000 : 10000
+            if (pollInterval) clearTimeout(pollInterval)
+            pollInterval = setTimeout(pollStatus, interval)
+          }
         } else if (response.sync_status === 'FAILED') {
           if (pollInterval) clearInterval(pollInterval)
         } else {
@@ -97,7 +129,7 @@ export default function InsightGenerationModal({
     return () => {
       if (pollInterval) clearTimeout(pollInterval)
     }
-  }, [isOpen, onComplete, notifyWhenReady])
+  }, [isOpen, onComplete, notifyWhenReady, triggerTimestamp])
 
   if (!isOpen) return null
 
@@ -166,7 +198,7 @@ export default function InsightGenerationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm ${status?.sync_status === 'COMPLETED' || status?.sync_status === 'FAILED' ? 'cursor-pointer' : 'cursor-default'}`}
         onClick={status?.sync_status === 'COMPLETED' || status?.sync_status === 'FAILED' ? onClose : undefined}
       />
 

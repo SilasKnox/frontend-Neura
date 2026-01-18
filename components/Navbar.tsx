@@ -31,7 +31,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-border-secondary bg-bg-primary">
       <div className="mx-auto flex max-w-[1280px] items-center justify-between px-4 py-4 md:px-8 md:py-4">
         {/* Left Side - Logo */}
-        <Link href="/dashboard" className="flex items-center gap-3">
+        <Link href="/overview" className="flex items-center gap-3">
           <img
             src="/logo.svg"
             alt="Neura"
@@ -44,12 +44,28 @@ export default function Navbar() {
           </span>
         </Link>
 
+        {/* Desktop - Navigation Links */}
+        <div className="hidden items-center gap-6 md:flex">
+            <Link
+              href="/overview"
+              className="text-sm font-medium text-text-primary-900 transition-colors hover:text-text-brand-tertiary-600 cursor-pointer"
+            >
+              Overview
+            </Link>
+            <Link
+              href="/insights"
+              className="text-sm font-medium text-text-primary-900 transition-colors hover:text-text-brand-tertiary-600 cursor-pointer"
+            >
+              Insights
+            </Link>
+        </div>
+
         {/* Desktop - Right Side Icons */}
         <div className="hidden items-center gap-4 md:flex">
           {/* Dark/Light Mode Toggle */}
           <button
             onClick={toggleTheme}
-            className="flex h-10 w-10 items-center justify-center rounded-md text-text-primary-900 transition-colors hover:bg-bg-secondary"
+            className="flex h-10 w-10 items-center justify-center rounded-md text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer"
             aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
           >
             {theme === 'light' ? (
@@ -88,7 +104,7 @@ export default function Navbar() {
           {/* Settings Icon */}
           <button
             onClick={handleSettingsClick}
-            className="flex h-10 w-10 items-center justify-center rounded-md text-text-primary-900 transition-colors hover:bg-bg-secondary"
+            className="flex h-10 w-10 items-center justify-center rounded-md text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer"
             aria-label="Settings"
           >
             <svg
@@ -116,7 +132,7 @@ export default function Navbar() {
           {/* User Profile Icon */}
           <button
             onClick={handleProfileClick}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-border-secondary bg-bg-primary text-text-primary-900 transition-colors hover:bg-bg-secondary"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border-secondary bg-bg-primary text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer"
             aria-label="User profile"
           >
             <svg
@@ -139,7 +155,7 @@ export default function Navbar() {
         {/* Mobile - Hamburger Menu */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex h-10 w-10 items-center justify-center rounded-md text-text-primary-900 transition-colors hover:bg-bg-secondary md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-md text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer md:hidden"
           aria-label="Menu"
         >
           {mobileMenuOpen ? (
@@ -183,6 +199,22 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="border-t border-border-secondary bg-bg-primary md:hidden">
           <div className="mx-auto max-w-[1280px] px-4 py-2">
+            {/* Navigation Links */}
+            <Link
+              href="/overview"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+            >
+              <span>Overview</span>
+            </Link>
+            <Link
+              href="/insights"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+            >
+              <span>Insights</span>
+            </Link>
+
             {/* Dark/Light Mode Toggle */}
             <button
               onClick={handleThemeToggle}

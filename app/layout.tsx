@@ -3,6 +3,8 @@ import { Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { ToastProvider } from "@/context/ToastContext";
+import { ToastContainer } from "@/components/Toast";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -34,7 +36,10 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <ToastProvider>
+              {children}
+              <ToastContainer />
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

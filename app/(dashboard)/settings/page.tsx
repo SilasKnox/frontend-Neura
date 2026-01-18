@@ -126,8 +126,8 @@ export default function SettingsPage() {
       <div className="mx-auto max-w-[1280px] px-4 py-6 md:px-8 md:py-6">
         {/* Back to overview */}
         <Link
-          href="/dashboard"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-text-quaternary-500 hover:text-text-primary-900 transition-colors"
+          href="/overview"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-text-quaternary-500 hover:text-text-primary-900 transition-colors cursor-pointer"
         >
           <svg
             className="h-4 w-4"
@@ -224,7 +224,7 @@ export default function SettingsPage() {
                       <button
                         onClick={handleReconnect}
                         disabled={connecting || disconnecting}
-                        className="flex items-center gap-2 text-sm font-medium text-text-brand-tertiary-600 hover:underline whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-sm font-medium text-text-brand-tertiary-600 hover:underline whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {connecting && (
                           <svg
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                       <button
                         onClick={handleDisconnect}
                         disabled={connecting || disconnecting}
-                        className="flex items-center gap-2 whitespace-nowrap rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary-subtle px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 whitespace-nowrap rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary-subtle px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {disconnecting && (
                           <svg
@@ -284,7 +284,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleReconnect}
                       disabled={connecting}
-                      className="flex items-center gap-2 whitespace-nowrap rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary-subtle px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 whitespace-nowrap rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary-subtle px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {connecting && (
                         <svg
@@ -339,7 +339,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-medium text-text-primary-900">Help & support</span>
                 <a
                   href={settings?.support_link || 'mailto:support@getneura.co'}
-                  className="flex items-center gap-2 text-sm font-medium text-text-brand-tertiary-600 hover:underline md:ml-auto"
+                  className="flex items-center gap-2 text-sm font-medium text-text-brand-tertiary-600 hover:underline cursor-pointer md:ml-auto"
                 >
                   <svg
                     className="h-4 w-4"
@@ -365,7 +365,7 @@ export default function SettingsPage() {
           <section>
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-2 rounded-md bg-[#d92d20] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#b91c1c]"
+              className="flex items-center gap-2 rounded-md bg-[#d92d20] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#b91c1c] cursor-pointer"
             >
               <svg
                 className="h-4 w-4"

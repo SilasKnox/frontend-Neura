@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token,
       })
-      window.location.href = '/dashboard'
+      window.location.href = '/overview'
     } else {
       // Email confirmation required
       router.push('/login?message=Check your email to confirm your account')
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       access_token: data.session.access_token,
       refresh_token: data.session.refresh_token,
     })
-    window.location.href = '/dashboard'
+    window.location.href = '/overview'
   }
 
   const signInWithGoogle = async () => {

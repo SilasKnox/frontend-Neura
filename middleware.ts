@@ -30,9 +30,10 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect dashboard routes (including settings)
+  // Protect dashboard routes (overview, insights, settings)
   if (
-    (request.nextUrl.pathname.startsWith('/dashboard') ||
+    (request.nextUrl.pathname.startsWith('/overview') ||
+     request.nextUrl.pathname.startsWith('/insights') ||
      request.nextUrl.pathname.startsWith('/settings')) &&
     !user
   ) {
@@ -45,7 +46,7 @@ export async function middleware(request: NextRequest) {
      request.nextUrl.pathname.startsWith('/signup')) &&
     user
   ) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/overview', request.url))
   }
 
   return response

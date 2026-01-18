@@ -4,64 +4,16 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { apiRequest } from '@/lib/api/client'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useOverviewStore, OverviewData, Insight } from '@/stores/overviewStore'
 import XeroConnectModal from '@/components/XeroConnectModal'
 import InsightGenerationModal from '@/components/InsightGenerationModal'
+import InsightFeedbackModal from '@/components/InsightFeedbackModal'
 import { DashboardSkeleton } from '@/components/DashboardSkeleton'
 
-interface CashRunwayMetrics {
-  current_cash: number
-  monthly_burn_rate: number
-  runway_months: number | null
-  status: string
-  confidence_level?: string
-}
-
-interface CashPressureMetrics {
-  status: string
-  confidence: string
-}
-
-interface ProfitabilityMetrics {
-  revenue?: number
-  gross_margin_pct?: number
-  net_profit?: number
-  risk_level: string
-}
-
-interface Insight {
-  insight_id: string
-  insight_type: string
-  title: string
-  severity: string
-  confidence_level: string
-  summary: string
-  why_it_matters: string
-  recommended_actions: string[]
-  supporting_numbers: Array<{ label: string; value: string | number }>
-  data_notes?: string
-  generated_at: string
-  is_acknowledged: boolean
-  is_marked_done: boolean
-}
-
-interface UpcomingCommitmentsMetrics {
-  upcoming_amount: number
-  upcoming_count: number
-  days_ahead: number
-  large_upcoming_bills: Array<{ label: string; amount: number; due_date: string }>
-  squeeze_risk: string
-}
-
-interface InsightsResponse {
-  cash_runway: CashRunwayMetrics | null
-  cash_pressure: CashPressureMetrics | null
-  profitability: ProfitabilityMetrics | null
-  upcoming_commitments: UpcomingCommitmentsMetrics | null
-  insights: Insight[]
-  calculated_at: string | null
-}
+// Types are imported from overviewStore
 
 interface XeroIntegration {
   is_connected: boolean
@@ -78,26 +30,51 @@ interface SettingsData {
   support_link: string | null
 }
 
-export default function DashboardPage() {
+export default function OverviewPage() {
   const { user, loading: authLoading } = useAuth()
+  const { showToast } = useToast()
   const router = useRouter()
-  const [data, setData] = useState<InsightsResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
   const [dataQuality, setDataQuality] = useState<'Good' | 'Mixed' | 'Low'>('Good')
   const [showXeroModal, setShowXeroModal] = useState(false)
   const [showInsightModal, setShowInsightModal] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [triggerTimestamp, setTriggerTimestamp] = useState<number | undefined>(undefined)
+  const [feedbackModal, setFeedbackModal] = useState<{ isOpen: boolean; insightId: string; isPositive: boolean }>({
+    isOpen: false,
+    insightId: '',
+    isPositive: true,
+  })
   
-  // Use Zustand store for settings
+  // Use Zustand stores
   const { settings, fetchSettings, getXeroConnected } = useSettingsStore()
+  const { data, isLoading, error, fetchOverview, updateOverview } = useOverviewStore()
 
   useEffect(() => {
     if (user) {
-      fetchDashboardData()
-      fetchSettings() // Fetch from store
+      // Fetch from store (uses cache unless page refresh)
+      fetchOverview()
+      fetchSettings()
     }
-  }, [user, fetchSettings])
+  }, [user, fetchOverview, fetchSettings])
+
+  // Update data quality when data changes
+  useEffect(() => {
+    if (data) {
+      const hasLowConfidence = data.cash_runway?.confidence_level === 'Low' || 
+                               data.cash_pressure?.confidence === 'low'
+      const hasMediumConfidence = data.cash_runway?.confidence_level === 'Medium' || 
+                                  data.cash_pressure?.confidence === 'medium'
+      
+      if (hasLowConfidence) {
+        setDataQuality('Low')
+      } else if (hasMediumConfidence) {
+        setDataQuality('Mixed')
+      } else {
+        setDataQuality('Good')
+      }
+    }
+  }, [data])
 
   // Calculate Business Health Score (0-100)
   const calculateHealthScore = (): number => {
@@ -169,12 +146,12 @@ export default function DashboardPage() {
         method: 'PATCH',
         body: JSON.stringify({ is_marked_done: true }),
       })
-      // Refresh data
-      const response = await apiRequest<InsightsResponse>('/api/insights/')
-      setData(response)
+      // Refresh data from store
+      await fetchOverview(true)
       setExpandedCardId(null)
+      showToast('Insight marked as resolved', 'success')
     } catch (err: any) {
-      setError(err.message || 'Failed to resolve insight')
+      showToast('Failed to resolve insight', 'error')
     }
   }
 
@@ -184,18 +161,44 @@ export default function DashboardPage() {
         method: 'PATCH',
         body: JSON.stringify({ is_acknowledged: true }),
       })
-      // Refresh data
-      const response = await apiRequest<InsightsResponse>('/api/insights/')
-      setData(response)
+      // Refresh data from store
+      await fetchOverview(true)
+      showToast('Insight acknowledged', 'success')
     } catch (err: any) {
-      setError(err.message || 'Failed to acknowledge insight')
+      showToast('Failed to acknowledge insight', 'error')
+    }
+  }
+
+  const handleFeedbackSubmit = async (feedbackText: string) => {
+    try {
+      const insight = data?.insights.find(i => i.insight_id === feedbackModal.insightId)
+      if (!insight) {
+        showToast('Insight not found', 'error')
+        return
+      }
+
+      await apiRequest('/api/feedback/', {
+        method: 'POST',
+        body: JSON.stringify({
+          insight_id: insight.insight_id,
+          insight_type: insight.insight_type,
+          insight_title: insight.title,
+          is_helpful: feedbackModal.isPositive,
+          comment: feedbackText || undefined,
+        }),
+      })
+
+      // Close modal and show success toast
+      setFeedbackModal({ isOpen: false, insightId: '', isPositive: true })
+      showToast('Thank you for your feedback!', 'success')
+    } catch (err: any) {
+      console.error('Failed to submit feedback:', err)
+      showToast('Failed to submit feedback. Please try again.', 'error')
     }
   }
 
   const handleGenerateInsights = async () => {
     try {
-      setError(null)
-      
       // Ensure settings are loaded
       if (!settings) {
         await fetchSettings()
@@ -209,6 +212,10 @@ export default function DashboardPage() {
         return
       }
 
+      // Record trigger timestamp BEFORE opening modal (UTC milliseconds)
+      const triggeredAt = Date.now()
+      setTriggerTimestamp(triggeredAt)
+      
       // Open modal IMMEDIATELY (optimistic UI)
       setShowInsightModal(true)
       
@@ -217,44 +224,58 @@ export default function DashboardPage() {
         method: 'POST',
       })
     } catch (err: any) {
-      setError(err.message || 'Failed to generate insights')
       // Close modal on error
       setShowInsightModal(false)
+      setTriggerTimestamp(undefined)
     }
   }
 
   const handleInsightGenerationComplete = async () => {
     setShowInsightModal(false)
-    // Refresh dashboard data
-    await fetchDashboardData()
+    setTriggerTimestamp(undefined)
+    // Refresh overview data from store (force refresh)
+    await fetchOverview(true)
   }
 
-  const fetchDashboardData = async () => {
+  const handleReSync = async () => {
     try {
-      const response = await apiRequest<InsightsResponse>('/api/insights/')
-      setData(response)
+      setSyncing(true)
       
-      // Determine data quality based on confidence levels
-      const hasLowConfidence = response.cash_runway?.confidence_level === 'Low' || 
-                               response.cash_pressure?.confidence === 'low'
-      const hasMediumConfidence = response.cash_runway?.confidence_level === 'Medium' || 
-                                  response.cash_pressure?.confidence === 'medium'
-      
-      if (hasLowConfidence) {
-        setDataQuality('Low')
-      } else if (hasMediumConfidence) {
-        setDataQuality('Mixed')
-      } else {
-        setDataQuality('Good')
+      // Ensure settings are loaded
+      if (!settings) {
+        await fetchSettings()
       }
+      
+      // Check Xero connection using store
+      const xeroConnected = getXeroConnected()
+      
+      if (!xeroConnected) {
+        setShowXeroModal(true)
+        setSyncing(false)
+        return
+      }
+
+      // Record trigger timestamp BEFORE opening modal (UTC milliseconds)
+      const triggeredAt = Date.now()
+      setTriggerTimestamp(triggeredAt)
+      
+      // Open modal IMMEDIATELY (optimistic UI)
+      setShowInsightModal(true)
+      
+      // Then trigger the backend process
+      await apiRequest('/api/insights/trigger', {
+        method: 'POST',
+      })
     } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard data')
+      // Close modal on error
+      setShowInsightModal(false)
+      setTriggerTimestamp(undefined)
     } finally {
-      setLoading(false)
+      setSyncing(false)
     }
   }
 
-  if (authLoading || loading) {
+  if (authLoading || isLoading) {
     return <DashboardSkeleton />
   }
 
@@ -346,33 +367,62 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-[1280px] px-4 py-6 md:px-8 md:py-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="mb-2 text-display-md text-text-primary-900 font-bold">
-            Your business today
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <span className="text-text-quaternary-500">
-              Last updated: {formatDate(data?.calculated_at || null)}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-text-quaternary-500">Data quality:</span>
-              <div className="flex gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  dataQuality === 'Good' ? 'bg-[#079455] text-white' : 'bg-bg-secondary-subtle text-text-quaternary-500'
-                }`}>
-                  Good
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="mb-2 text-display-md text-text-primary-900 font-bold">
+                Your business today
+              </h1>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                <span className="text-text-quaternary-500">
+                  Last updated: {formatDate(data?.calculated_at || null)}
                 </span>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  dataQuality === 'Mixed' ? 'bg-[#f59e0b] text-white' : 'bg-bg-secondary-subtle text-text-quaternary-500'
-                }`}>
-                  Mixed
-                </span>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  dataQuality === 'Low' ? 'bg-[#d92d20] text-white' : 'bg-bg-secondary-subtle text-text-quaternary-500'
-                }`}>
-                  Low
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-text-quaternary-500">Data quality:</span>
+                  <div className="flex gap-2">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      dataQuality === 'Good' ? 'bg-[#079455] text-white' : 'bg-bg-secondary-subtle text-text-quaternary-500'
+                    }`}>
+                      Good
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      dataQuality === 'Mixed' ? 'bg-[#f59e0b] text-white' : 'bg-bg-secondary-subtle text-text-quaternary-500'
+                    }`}>
+                      Mixed
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      dataQuality === 'Low' ? 'bg-[#d92d20] text-white' : 'bg-bg-secondary-subtle text-text-quaternary-500'
+                    }`}>
+                      Low
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
+            {/* Re-sync Button */}
+            {!hasNoInsights && (
+              <button
+                onClick={handleReSync}
+                disabled={syncing || showInsightModal}
+                className="flex items-center gap-2 rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-4 py-2 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {syncing ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Re-sync
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -384,7 +434,7 @@ export default function DashboardPage() {
         )}
 
         {/* Empty State */}
-        {hasNoInsights && !loading && (
+        {hasNoInsights && !isLoading && (
           <div className="flex min-h-[60vh] flex-col items-center justify-center py-12">
             <div className="mx-auto w-full max-w-2xl text-center">
               <div className="mb-6 flex justify-center">
@@ -411,7 +461,7 @@ export default function DashboardPage() {
               <button
                 onClick={handleGenerateInsights}
                 disabled={showInsightModal}
-                className="rounded-md bg-bg-brand-solid px-6 py-2.5 text-sm font-semibold text-text-white transition-colors hover:bg-fg-brand-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-bg-brand-solid px-6 py-2.5 text-sm font-semibold text-text-white transition-colors hover:bg-fg-brand-primary-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Generate insights
               </button>
@@ -430,8 +480,8 @@ export default function DashboardPage() {
                   BUSINESS HEALTH SCORE
                 </h2>
                 <Link
-                  href="/dashboard/health-score"
-                  className="text-sm font-medium text-text-brand-tertiary-600 hover:underline"
+                  href="/overview/health-score"
+                  className="text-sm font-medium text-text-brand-tertiary-600 hover:underline cursor-pointer"
                 >
                   View details &gt;
                 </Link>
@@ -547,6 +597,7 @@ export default function DashboardPage() {
                     isExpanded={expandedCardId === insight.insight_id}
                     onExpand={() => setExpandedCardId(expandedCardId === insight.insight_id ? null : insight.insight_id)}
                     onResolve={() => handleResolve(insight.insight_id)}
+                    onFeedback={(isPositive) => setFeedbackModal({ isOpen: true, insightId: insight.insight_id, isPositive })}
                     calculatedAt={data?.calculated_at || null}
                   />
                 ))}
@@ -666,8 +717,20 @@ export default function DashboardPage() {
       {/* Insight Generation Modal */}
       <InsightGenerationModal
         isOpen={showInsightModal}
-        onClose={() => setShowInsightModal(false)}
+        onClose={() => {
+          setShowInsightModal(false)
+          setTriggerTimestamp(undefined)
+        }}
         onComplete={handleInsightGenerationComplete}
+        triggeredAt={triggerTimestamp}
+      />
+
+      {/* Feedback Modal */}
+      <InsightFeedbackModal
+        isOpen={feedbackModal.isOpen}
+        onClose={() => setFeedbackModal({ isOpen: false, insightId: '', isPositive: true })}
+        onSubmit={handleFeedbackSubmit}
+        isPositive={feedbackModal.isPositive}
       />
     </div>
   )
@@ -679,12 +742,14 @@ function WatchCard({
   isExpanded,
   onExpand,
   onResolve,
+  onFeedback,
   calculatedAt,
 }: {
   insight: Insight
   isExpanded: boolean
   onExpand: () => void
   onResolve: () => void
+  onFeedback: (isPositive: boolean) => void
   calculatedAt: string | null
 }) {
   const formatDate = (dateString: string | null) => {
@@ -713,6 +778,46 @@ function WatchCard({
     n.label.toLowerCase().includes('day') || n.label.toLowerCase().includes('timeframe')
   )
 
+  // Extract financial detail badge (e.g., "+$2,400 vs average")
+  const financialDetail = insight.supporting_numbers.find(n => 
+    n.label.toLowerCase().includes('vs') || 
+    n.label.toLowerCase().includes('average') ||
+    n.label.toLowerCase().includes('change') ||
+    n.label.toLowerCase().includes('difference')
+  )
+
+  // Determine INPUTS USED based on insight type and data notes
+  const getInputsUsed = (): string[] => {
+    const inputs: string[] = []
+    const insightType = insight.insight_type.toLowerCase()
+    const dataNotes = (insight.data_notes || '').toLowerCase()
+
+    // Always include bank transactions for cash-related insights
+    if (insightType.includes('cash') || insightType.includes('runway') || insightType.includes('squeeze')) {
+      inputs.push('Bank transactions')
+    }
+
+    // Add based on insight type
+    if (insightType.includes('receivable') || dataNotes.includes('invoice')) {
+      inputs.push('Invoices')
+    }
+    if (insightType.includes('expense') || insightType.includes('bill') || dataNotes.includes('bill')) {
+      inputs.push('Bills')
+    }
+    if (insightType.includes('profitability') || dataNotes.includes('trial balance')) {
+      inputs.push('Trial Balance')
+    }
+
+    // Default inputs if none found
+    if (inputs.length === 0) {
+      inputs.push('Bank transactions', 'Invoices', 'Bills')
+    }
+
+    return inputs
+  }
+
+  const inputsUsed = getInputsUsed()
+
   return (
     <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4">
       <div className="flex items-start justify-between gap-4">
@@ -726,12 +831,23 @@ function WatchCard({
             </span>
           </div>
           <h3 className="mb-1 break-words text-sm font-semibold text-text-primary-900">{insight.title}</h3>
+          {financialDetail && (
+            <div className="mb-2">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-primary-900">
+                <span>💰</span>
+                <span>{typeof financialDetail.value === 'number' 
+                  ? `${financialDetail.value >= 0 ? '+' : ''}$${Math.abs(financialDetail.value).toLocaleString()} vs average`
+                  : `${financialDetail.value} vs average`}
+                </span>
+              </span>
+            </div>
+          )}
           <p className="mb-3 break-words text-sm leading-relaxed text-text-secondary-700">{insight.summary}</p>
           
           {!isExpanded && (
             <button
               onClick={onExpand}
-              className="flex items-center gap-1 text-sm text-text-brand-tertiary-600 hover:underline"
+              className="flex items-center gap-1 text-sm text-text-brand-tertiary-600 hover:underline cursor-pointer"
             >
               How we worked this out
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -751,10 +867,30 @@ function WatchCard({
           )}
           <button
             onClick={onResolve}
-            className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap"
+            className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer"
           >
             Resolve
           </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onFeedback(true)}
+              className="rounded p-1 text-text-quaternary-500 hover:text-text-primary-900 hover:bg-bg-secondary transition-colors cursor-pointer"
+              title="Helpful"
+            >
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => onFeedback(false)}
+              className="rounded p-1 text-text-quaternary-500 hover:text-text-primary-900 hover:bg-bg-secondary transition-colors cursor-pointer"
+              title="Not helpful"
+            >
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -779,17 +915,28 @@ function WatchCard({
               INPUTS USED
             </h4>
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-md border border-border-secondary bg-bg-primary px-2 py-1 text-xs text-text-primary-900">
-                Bank transactions (90 days)
-              </span>
-              <span className="rounded-md border border-border-secondary bg-bg-primary px-2 py-1 text-xs text-text-primary-900">
-                Outstanding invoices
-              </span>
-              <span className="rounded-md border border-border-secondary bg-bg-primary px-2 py-1 text-xs text-text-primary-900">
-                Recurring expenses
-              </span>
+              {inputsUsed.map((input, i) => (
+                <span
+                  key={i}
+                  className="rounded-md border border-border-secondary/40 bg-white dark:bg-bg-secondary-subtle px-2 py-1 text-xs font-medium text-text-primary-900"
+                >
+                  {input}
+                </span>
+              ))}
             </div>
           </div>
+
+          {/* Data Notes Warning */}
+          {insight.data_notes && (
+            <div className="rounded-md bg-[#fef3c7] dark:bg-[#78350f]/20 border border-[#fbbf24] dark:border-[#fbbf24]/40 p-3">
+              <div className="flex items-start gap-2">
+                <svg className="h-5 w-5 shrink-0 text-[#d97706]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p className="text-sm text-[#92400e] dark:text-[#fbbf24]">{insight.data_notes}</p>
+              </div>
+            </div>
+          )}
 
           {insight.supporting_numbers.length > 0 && (
             <div>
@@ -811,20 +958,6 @@ function WatchCard({
             <span>Based on last 90 days</span>
             <span>Updated {formatDate(calculatedAt)}</span>
           </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-text-quaternary-500">Helpful?</span>
-            <button className="rounded-md p-1 hover:bg-bg-secondary">
-              <svg className="h-4 w-4 text-text-quaternary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v5m7 0l-5 5m5-5l-5-5" />
-              </svg>
-            </button>
-            <button className="rounded-md p-1 hover:bg-bg-secondary">
-              <svg className="h-4 w-4 text-text-quaternary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .966-.18 1.32-.51l3.76-3.76c.19-.19.3-.45.3-.71V14a2 2 0 00-2-2h-5m-5 0V5a2 2 0 012-2h4a2 2 0 012 2v5m-5 0l5 5m-5-5l5-5" />
-              </svg>
-            </button>
-          </div>
         </div>
       )}
     </div>
@@ -843,28 +976,45 @@ function OKCard({
   onExpand: () => void
   onGotIt: () => void
 }) {
+  // Extract impact amount and suggested action for supporting line
+  // Format: "impact amount · suggested action"
+  const impactAmount = insight.supporting_numbers.find(n => 
+    n.label.toLowerCase().includes('impact') || 
+    n.label.toLowerCase().includes('change') ||
+    n.label.toLowerCase().includes('difference')
+  )
+  const suggestedAction = insight.recommended_actions[0] || ''
+
   return (
     <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="rounded-full border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-primary-900">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <span className="rounded-full border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-primary-900 shrink-0">
             OK
           </span>
           <div className="min-w-0 flex-1">
-            <h3 className="break-words text-sm font-semibold text-text-primary-900">{insight.title}</h3>
-            <p className="break-words text-xs leading-relaxed text-text-quaternary-500">{insight.summary}</p>
+            <h3 className="break-words text-sm font-semibold text-text-primary-900 mb-0.5">{insight.title}</h3>
+            {(impactAmount || suggestedAction) && (
+              <p className="break-words text-xs leading-relaxed text-text-quaternary-500">
+                {impactAmount && typeof impactAmount.value === 'number' 
+                  ? `${impactAmount.value >= 0 ? '+' : ''}$${Math.abs(impactAmount.value).toLocaleString()}`
+                  : impactAmount?.value || ''}
+                {impactAmount && suggestedAction && ' · '}
+                {suggestedAction}
+              </p>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onGotIt}
-            className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+            className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary px-3 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer"
           >
             Got it
           </button>
           <button
             onClick={onExpand}
-            className="rounded-md p-1.5 text-text-primary-900 hover:bg-bg-secondary"
+            className="rounded-md p-1.5 text-text-primary-900 hover:bg-bg-secondary cursor-pointer"
           >
             <svg
               className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}

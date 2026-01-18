@@ -310,6 +310,22 @@ body {
    UTILITY CLASSES
    ============================================ */
 
+/* Cursor pointer for all interactive elements */
+button,
+a,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
 /* Display Typography */
 .text-display-md {
   font-family: var(--font-family-display);

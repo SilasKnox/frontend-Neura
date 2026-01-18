@@ -30,7 +30,7 @@ export default function CallbackHandler() {
       // Sync to backend
       await apiRequest('/auth/me').catch(() => {})
 
-      router.push('/dashboard')
+      router.push('/overview')
     }
 
     handleCallback()
