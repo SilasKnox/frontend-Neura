@@ -76,8 +76,8 @@ export interface HealthScoreData {
   }
 }
 
-// Cache TTL in milliseconds (5 minutes - health score doesn't change often)
-const CACHE_TTL = 5 * 60 * 1000
+// Cache TTL in milliseconds (20 minutes - health score only changes after sync)
+const CACHE_TTL = 20 * 60 * 1000
 
 // Store pending promise for request deduplication
 let pendingFetchPromise: Promise<void> | null = null

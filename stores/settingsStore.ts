@@ -28,7 +28,7 @@ interface SettingsStore {
   clearSettings: () => void
 }
 
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 20 * 60 * 1000 // 20 minutes
 
 // Store pending promise for request deduplication
 let pendingFetchPromise: Promise<void> | null = null

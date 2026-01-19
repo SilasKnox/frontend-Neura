@@ -53,8 +53,8 @@ export interface OverviewData {
   calculated_at: string | null
 }
 
-// Cache TTL in milliseconds (2 minutes)
-const CACHE_TTL = 2 * 60 * 1000
+// Cache TTL in milliseconds (20 minutes - data only changes after sync)
+const CACHE_TTL = 20 * 60 * 1000
 
 // Store pending promise for request deduplication
 let pendingFetchPromise: Promise<void> | null = null
