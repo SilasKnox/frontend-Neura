@@ -1,26 +1,15 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { apiRequest } from '@/lib/api/client'
-import { Insight } from '@/stores/overviewStore'
+import { useInsightsStore } from '@/stores/insightsStore'
 import { DashboardSkeleton } from '@/components/DashboardSkeleton'
 import InsightFeedbackModal from '@/components/InsightFeedbackModal'
 import WatchCard from '@/components/WatchCard'
 import OKCard from '@/components/OKCard'
-
-interface InsightsResponse {
-  insights: Insight[]
-  pagination: {
-    total: number
-    page: number
-    limit: number
-    total_pages: number
-  }
-  calculated_at: string | null
-}
 
 export default function InsightsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -28,8 +17,15 @@ export default function InsightsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const [insights, setInsights] = useState<Insight[]>([])
-  const [loading, setLoading] = useState(true)
+  // Use Zustand store for insights data
+  const { 
+    insights: allInsights, 
+    pagination, 
+    isLoading, 
+    fetchInsights, 
+    refetchInsights 
+  } = useInsightsStore()
+  
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null)
   const [feedbackModal, setFeedbackModal] = useState<{ isOpen: boolean; insightId: string; isPositive: boolean }>({
     isOpen: false,
@@ -40,50 +36,36 @@ export default function InsightsPage() {
   
   // Get filters from URL params
   const page = parseInt(searchParams.get('page') || '1', 10)
-  const limit = parseInt(searchParams.get('limit') || '20', 10)
   const severityFilter = searchParams.get('severity') || 'all'
   const statusFilter = searchParams.get('status') || 'all'
-  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, total_pages: 0 })
 
-  const fetchInsights = useCallback(async () => {
-    try {
-      setLoading(true)
-      
-      // Build query params
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-      })
-      
-      if (severityFilter !== 'all') {
-        params.append('severity', severityFilter)
-      }
-      
-      const response = await apiRequest<InsightsResponse>(`/api/insights/?${params.toString()}`)
-      
-      // Filter by status (resolved/active) on frontend since backend doesn't support it
-      let filteredInsights = response.insights
-      if (statusFilter === 'active') {
-        filteredInsights = response.insights.filter(i => !i.is_marked_done)
-      } else if (statusFilter === 'resolved') {
-        filteredInsights = response.insights.filter(i => i.is_marked_done)
-      }
-      
-      setInsights(filteredInsights)
-      setPagination(response.pagination)
-    } catch (err) {
-      console.error('Failed to fetch insights:', err)
-      showToast('Failed to load insights', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }, [page, limit, severityFilter, statusFilter, showToast])
-
+  // Fetch insights once when user is available
+  const userId = user?.id
   useEffect(() => {
-    if (user) {
+    if (userId) {
       fetchInsights()
     }
-  }, [user, fetchInsights])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
+
+  // Filter insights on frontend based on URL params
+  const insights = useMemo(() => {
+    let filtered = allInsights
+    
+    // Filter by severity
+    if (severityFilter !== 'all') {
+      filtered = filtered.filter(i => i.severity === severityFilter)
+    }
+    
+    // Filter by status (resolved/active)
+    if (statusFilter === 'active') {
+      filtered = filtered.filter(i => !i.is_marked_done)
+    } else if (statusFilter === 'resolved') {
+      filtered = filtered.filter(i => i.is_marked_done)
+    }
+    
+    return filtered
+  }, [allInsights, severityFilter, statusFilter])
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -111,7 +93,7 @@ export default function InsightsPage() {
         body: JSON.stringify({ is_marked_done: true }),
       })
       showToast('Insight marked as resolved', 'success')
-      fetchInsights()
+      refetchInsights() // Force refetch after action
       setExpandedCardId(null)
     } catch (err) {
       showToast('Failed to resolve insight', 'error')
@@ -129,7 +111,7 @@ export default function InsightsPage() {
         body: JSON.stringify({ is_acknowledged: true }),
       })
       showToast('Insight acknowledged', 'success')
-      fetchInsights()
+      refetchInsights() // Force refetch after action
     } catch (err) {
       showToast('Failed to acknowledge insight', 'error')
     } finally {
@@ -164,7 +146,7 @@ export default function InsightsPage() {
     }
   }
 
-  if (authLoading || loading) {
+  if (authLoading || isLoading) {
     return <DashboardSkeleton />
   }
 
