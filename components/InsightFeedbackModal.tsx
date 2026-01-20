@@ -48,7 +48,7 @@ export default function InsightFeedbackModal({
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-[500px] max-w-[90vw] rounded-lg bg-bg-secondary-subtle dark:bg-bg-secondary p-6 shadow-xl">
+      <div className="relative z-10 w-[500px] max-w-[90vw] rounded-xl bg-bg-primary p-6 shadow-xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -59,29 +59,31 @@ export default function InsightFeedbackModal({
           </svg>
         </button>
 
-        {/* Header */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${isPositive ? 'bg-[#079455]' : 'bg-[#d92d20]'}`}>
-            {isPositive ? (
-              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v5m7 0l-5 5m5-5l-5-5" />
-              </svg>
-            ) : (
-              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .966-.18 1.32-.51l3.76-3.76c.19-.19.3-.45.3-.71V14a2 2 0 00-2-2h-5m-5 0V5a2 2 0 012-2h4a2 2 0 012 2v5m-5 0l5 5m-5-5l5-5" />
-              </svg>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-text-primary-900 mb-1">
-              Thanks for your feedback
-            </h2>
-            <p className="text-sm text-text-secondary-700">
-              {isPositive
-                ? 'We\'re glad this insight was helpful. Your feedback helps us improve.'
-                : 'We\'re sorry this insight wasn\'t helpful. Your feedback helps us improve.'}
-            </p>
-          </div>
+        {/* Icon - Light green circle with teal thumbs icon (matching Figma) */}
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full mb-4 ${isPositive ? 'bg-[#D1FADF]' : 'bg-[#FEE4E2]'}`}>
+          {isPositive ? (
+            // Thumbs up - outlined style matching Figma
+            <svg className="h-6 w-6 text-[#039855]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 22V11M2 13V20C2 21.1046 2.89543 22 4 22H17.4262C18.907 22 20.1662 20.9197 20.3914 19.4562L21.4683 12.4562C21.7479 10.6389 20.3418 9 18.5032 9H15C14.4477 9 14 8.55228 14 8V4.46584C14 3.10399 12.896 2 11.5342 2C11.2093 2 10.915 2.1913 10.7831 2.48812L7.26394 10.4061C7.10344 10.7673 6.74532 11 6.35013 11H4C2.89543 11 2 11.8954 2 13Z" />
+            </svg>
+          ) : (
+            // Thumbs down - outlined style matching Figma
+            <svg className="h-6 w-6 text-[#D92D20]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 2V13M22 11V4C22 2.89543 21.1046 2 20 2H6.57381C5.09304 2 3.83381 3.08034 3.60856 4.54379L2.53168 11.5438C2.25212 13.3611 3.65819 15 5.49681 15H9C9.55228 15 10 15.4477 10 16V19.5342C10 20.896 11.104 22 12.4658 22C12.7907 22 13.085 21.8087 13.2169 21.5119L16.7361 13.5939C16.8966 13.2327 17.2547 13 17.6499 13H20C21.1046 13 22 12.1046 22 11Z" />
+            </svg>
+          )}
+        </div>
+
+        {/* Header text */}
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-text-primary-900 mb-1">
+            Thanks for your feedback
+          </h2>
+          <p className="text-sm text-text-secondary-700">
+            {isPositive
+              ? 'We\'re glad this insight was helpful. Your feedback helps us improve.'
+              : 'We\'re sorry this insight wasn\'t helpful. Your feedback helps us improve.'}
+          </p>
         </div>
 
         {/* Feedback Input */}
@@ -93,24 +95,24 @@ export default function InsightFeedbackModal({
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder={isPositive ? 'What made this insight helpful?' : 'What could we improve?'}
-            className="w-full min-h-[100px] rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600 resize-y"
+            className="w-full min-h-[100px] rounded-lg border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-brand-solid focus:outline-none focus:ring-1 focus:ring-brand-solid resize-y"
             rows={4}
           />
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - matching Figma layout */}
         <div className="flex items-center gap-3">
           <button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="flex-1 rounded-md border border-border-secondary bg-bg-primary px-4 py-2.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 rounded-lg border border-border-secondary bg-bg-primary px-4 py-2.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Confirm
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 rounded-md bg-text-brand-tertiary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-text-brand-tertiary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 rounded-lg bg-brand-solid px-4 py-2.5 text-sm font-semibold text-text-white transition-colors hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
