@@ -27,10 +27,27 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { settings, isLoading, error: storeError, fetchSettings, updateSettings } = useSettingsStore()
+  const { settings, isLoading, error: storeError, fetchSettings, updateOrgName } = useSettingsStore()
   const [error, setError] = useState<string | null>(null)
   const [connecting, setConnecting] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [orgName, setOrgName] = useState('')
+  const [savingOrgName, setSavingOrgName] = useState(false)
+
+  // Sync org name with settings
+  useEffect(() => {
+    if (settings?.organization_name) {
+      setOrgName(settings.organization_name)
+    }
+  }, [settings?.organization_name])
+
+  const handleSaveOrgName = async () => {
+    if (!orgName.trim() || orgName === settings?.organization_name) return
+    setSavingOrgName(true)
+    const success = await updateOrgName(orgName.trim())
+    if (!success) setError('Failed to update organization name')
+    setSavingOrgName(false)
+  }
 
   useEffect(() => {
     // Check for error in URL params (from OAuth callback)
@@ -159,7 +176,37 @@ export default function SettingsPage() {
         )}
 
         <div className="space-y-8">
-          {/* 5.2 ACCOUNT Section */}
+          {/* ORGANIZATION Section */}
+          <section>
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
+              ORGANIZATION
+            </h2>
+            <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <label htmlFor="orgName" className="text-sm font-medium text-text-primary-900">
+                  Organization name
+                </label>
+                <div className="flex flex-1 gap-2 md:max-w-[400px]">
+                  <input
+                    id="orgName"
+                    type="text"
+                    value={orgName}
+                    onChange={(e) => setOrgName(e.target.value)}
+                    className="flex-1 rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-brand-solid focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                  />
+                  <button
+                    onClick={handleSaveOrgName}
+                    disabled={savingOrgName || !orgName.trim() || orgName === settings?.organization_name}
+                    className="rounded-md bg-brand-solid px-4 py-2 text-sm font-medium text-text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {savingOrgName ? '...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ACCOUNT Section */}
           <section>
             <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
               ACCOUNT
@@ -171,19 +218,8 @@ export default function SettingsPage() {
                 </label>
                 <div className="relative flex-1 md:max-w-[400px]">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                    <svg
-                      className="h-4 w-4 text-text-quaternary-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
+                    <svg className="h-4 w-4 text-text-quaternary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <input
@@ -212,10 +248,15 @@ export default function SettingsPage() {
                     xero
                   </div>
                   {xeroIntegration?.is_connected && (
-                    <div className="flex items-center gap-1.5 rounded-full border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary-subtle px-2 py-0.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#079455]"></span>
-                      <span className="text-xs text-text-primary-900">Connected</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-1.5 rounded-full border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary-subtle px-2 py-0.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#079455]"></span>
+                        <span className="text-xs text-text-primary-900">Connected</span>
+                      </div>
+                      {xeroIntegration.xero_org_name && (
+                        <span className="text-sm text-text-secondary-700">{xeroIntegration.xero_org_name}</span>
+                      )}
+                    </>
                   )}
                 </div>
                 <div className="flex items-center gap-4 md:ml-auto">

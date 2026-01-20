@@ -6,10 +6,12 @@ interface XeroIntegration {
   connected_at: string | null
   last_synced_at: string | null
   needs_reconnect: boolean
+  xero_org_name: string | null
 }
 
 interface SettingsData {
   email: string
+  organization_name: string
   xero_integration: XeroIntegration
   last_sync_time: string | null
   support_link: string | null
@@ -25,6 +27,7 @@ interface SettingsStore {
   fetchSettings: () => Promise<void>
   getXeroConnected: () => boolean
   updateSettings: (settings: SettingsData) => void
+  updateOrgName: (name: string) => Promise<boolean>
   clearSettings: () => void
 }
 
@@ -92,6 +95,20 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       lastFetched: Date.now(),
       error: null,
     })
+  },
+
+  updateOrgName: async (name: string) => {
+    try {
+      const { apiRequest } = await import('@/lib/api/client')
+      const data = await apiRequest<SettingsData>('/settings/organization', {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
+      })
+      set({ settings: data, lastFetched: Date.now() })
+      return true
+    } catch {
+      return false
+    }
   },
 
   clearSettings: () => {
