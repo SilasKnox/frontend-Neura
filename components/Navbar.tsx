@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/context/ThemeContext'
@@ -11,6 +11,26 @@ export default function Navbar() {
   const { user } = useAuth()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // Check if user is admin (by testing admin endpoint)
+  useEffect(() => {
+    if (user) {
+      checkAdminStatus()
+    } else {
+      setIsAdmin(false)
+    }
+  }, [user])
+
+  const checkAdminStatus = async () => {
+    try {
+      const { apiRequest } = await import('@/lib/api/client')
+      await apiRequest('/api/admin/dashboard')
+      setIsAdmin(true)
+    } catch {
+      setIsAdmin(false)
+    }
+  }
 
   const handleSettingsClick = () => {
     router.push('/settings')
@@ -58,6 +78,14 @@ export default function Navbar() {
             >
               Insights
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-text-primary-900 transition-colors hover:text-text-brand-tertiary-600 cursor-pointer"
+              >
+                Admin
+              </Link>
+            )}
         </div>
 
         {/* Desktop - Right Side Icons */}
@@ -214,6 +242,15 @@ export default function Navbar() {
             >
               <span>Insights</span>
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+              >
+                <span>Admin</span>
+              </Link>
+            )}
 
             {/* Dark/Light Mode Toggle */}
             <button
