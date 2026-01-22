@@ -99,7 +99,7 @@ export default function WatchCard({
   const inputsUsed = getInputsUsed()
 
   return (
-    <div className="rounded-lg border border-border-secondary bg-bg-warning-card dark:bg-bg-warning-card p-4">
+    <div className="relative rounded-lg border border-border-secondary bg-bg-warning-card dark:bg-bg-warning-card p-4 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-[#F79009] before:rounded-l-lg before:rounded-r-[6px]">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           {/* Badges Row - Figma 1.5 */}
@@ -150,7 +150,7 @@ export default function WatchCard({
           {/* Expand Link */}
           <button
             onClick={onExpand}
-            className="flex items-center gap-1 text-sm text-text-warning-link dark:text-text-warning-link hover:underline cursor-pointer"
+            className="flex items-center gap-1 text-sm text-[#FABE6C] hover:underline cursor-pointer"
           >
             <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
