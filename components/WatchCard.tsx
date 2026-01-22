@@ -17,27 +17,28 @@ interface WatchCardProps {
 function formatKeyNumber(label: string, value: string | number): { formatted: string; colorClass: string } {
   const lowerLabel = label.toLowerCase()
   
-  // Money values - teal color
+  // Money values - dark orange color for WatchCard
   if (typeof value === 'number' || (typeof value === 'string' && value.includes('$'))) {
     const numValue = typeof value === 'number' ? value : parseFloat(value.replace(/[^0-9.-]/g, ''))
     if (!isNaN(numValue)) {
       const formatted = typeof value === 'string' ? value : `$${Math.abs(numValue).toLocaleString()}`
-      return { formatted, colorClass: 'text-text-brand-tertiary-600' }
+      return { formatted, colorClass: 'text-[#9a3412]' }
     }
   }
   
-  // Days/negative values - red color for negative
+  // Days/negative values - dark orange for WatchCard
   if (lowerLabel.includes('day') || lowerLabel.includes('until')) {
     const numValue = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^0-9.-]/g, ''))
     if (!isNaN(numValue) && numValue < 0) {
       return { formatted: String(value), colorClass: 'text-red-500' }
     }
     if (!isNaN(numValue) && numValue <= 14) {
-      return { formatted: String(value), colorClass: 'text-red-500' }
+      return { formatted: String(value), colorClass: 'text-[#9a3412]' }
     }
+    return { formatted: String(value), colorClass: 'text-[#9a3412]' }
   }
   
-  return { formatted: String(value), colorClass: 'text-text-primary-900' }
+  return { formatted: String(value), colorClass: 'text-[#9a3412]' }
 }
 
 export default function WatchCard({
@@ -98,15 +99,15 @@ export default function WatchCard({
   const inputsUsed = getInputsUsed()
 
   return (
-    <div className="rounded-lg border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4">
+    <div className="rounded-lg border border-border-secondary bg-[#FFFAEB] dark:bg-[#2a1f0f] p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           {/* Badges Row - Figma 1.5 */}
           <div className="mb-2 flex items-center gap-2">
-            <span className="rounded-full bg-[#f59e0b] px-2.5 py-0.5 text-xs font-semibold text-white uppercase">
+            <span className="rounded-full bg-[#F79009] px-2.5 py-0.5 text-xs font-semibold text-white uppercase">
               WATCH
             </span>
-            <span className="flex items-center gap-1.5 rounded-full border border-border-primary bg-bg-primary dark:bg-bg-primary px-2.5 py-0.5 text-xs font-medium text-text-secondary-700">
+            <span className="flex items-center gap-1.5 rounded-full border border-border-primary bg-[#FAFAFA] dark:bg-[#1a1a1a] px-2.5 py-0.5 text-xs font-medium text-text-secondary-700">
               <svg className="w-3.5 h-3.5 text-text-brand-tertiary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -125,7 +126,7 @@ export default function WatchCard({
           {/* Financial Detail Badge */}
           {financialDetail && (
             <div className="mb-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#FFFAEB] dark:bg-[#2a1f0f] border border-[#F6E3CE] dark:border-[#3a2a1a] px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-[#fbbf24]">
                 <span>$</span>
                 <span>{typeof financialDetail.value === 'number' 
                   ? `${financialDetail.value >= 0 ? '+' : ''}$${Math.abs(financialDetail.value).toLocaleString()} vs average`
@@ -140,8 +141,8 @@ export default function WatchCard({
           
           {/* Suggested Action Box - Figma shows orange/coral box */}
           {suggestedAction && !isExpanded && (
-            <div className="mb-3 rounded-md bg-[#fff7ed] dark:bg-[#7c2d12]/20 border border-[#fed7aa] dark:border-[#ea580c]/40 p-3">
-              <p className="text-xs font-semibold text-[#ea580c] dark:text-[#fb923c] mb-1">Suggested action</p>
+            <div className="mb-3 rounded-md bg-[#FEF0C7] dark:bg-[#3a2a1a] border border-[#F6E3CE] dark:border-[#3a2a1a] p-3">
+              <p className="text-xs font-semibold text-[#9a3412] dark:text-[#fbbf24] mb-1">Suggested action</p>
               <p className="text-sm text-[#9a3412] dark:text-[#fdba74]">{suggestedAction}</p>
             </div>
           )}
@@ -149,7 +150,7 @@ export default function WatchCard({
           {/* Expand Link */}
           <button
             onClick={onExpand}
-            className="flex items-center gap-1 text-sm text-text-brand-tertiary-600 hover:underline cursor-pointer"
+            className="flex items-center gap-1 text-sm text-[#FAB75D] hover:underline cursor-pointer"
           >
             <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -161,17 +162,17 @@ export default function WatchCard({
         {/* Right Side - Timeframe & Actions */}
         <div className="flex flex-col items-end gap-2">
           {timeframe && (
-            <div className="flex items-center gap-1.5 text-sm text-text-brand-tertiary-600">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFFAEB] dark:bg-[#2a1f0f] border border-[#F6E3CE] dark:border-[#3a2a1a] px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-[#fbbf24]">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-medium">~{typeof timeframe.value === 'number' ? timeframe.value : timeframe.value} days</span>
-            </div>
+              <span>~{typeof timeframe.value === 'number' ? timeframe.value : timeframe.value} days</span>
+            </span>
           )}
           <button
             onClick={onResolve}
             disabled={isLoading}
-            className="rounded-md border border-border-primary bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-border-primary bg-[#FFFFFF] dark:bg-[#1a1a1a] px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Resolving...' : 'Resolve'}
           </button>
@@ -189,14 +190,31 @@ export default function WatchCard({
             <ul className="space-y-1.5 text-sm leading-relaxed text-text-secondary-700">
               {insight.why_it_matters.split('\n').filter(line => line.trim()).map((line, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-brand-tertiary-600"></span>
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#F89D25]"></span>
                   <span className="break-words">{line}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* INPUTS USED - Figma shows teal bordered tags */}
+          {/* RECOMMENDED ACTIONS */}
+          {insight.recommended_actions.length > 0 && (
+            <div>
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
+                RECOMMENDED ACTIONS
+              </h4>
+              <ul className="space-y-1.5 text-sm leading-relaxed text-text-secondary-700">
+                {insight.recommended_actions.map((action, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#F89D25]"></span>
+                    <span className="break-words">{action}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* INPUTS USED - Figma shows orange background tags */}
           <div>
             <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
               INPUTS USED
@@ -205,7 +223,7 @@ export default function WatchCard({
               {inputsUsed.map((input, i) => (
                 <span
                   key={i}
-                  className="rounded-md border border-text-brand-tertiary-600/40 bg-white dark:bg-bg-secondary px-2.5 py-1 text-xs font-medium text-text-brand-tertiary-600"
+                  className="rounded-md border border-[#F6E3CE] dark:border-[#3a2a1a] bg-[#F6E3CE] dark:bg-[#3a2a1a] px-2.5 py-1 text-xs font-medium text-[#9a3412] dark:text-[#fbbf24]"
                 >
                   {input}
                 </span>
@@ -251,7 +269,12 @@ export default function WatchCard({
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Based on last 90 days</span>
+              <span>
+                Based on last 90 days
+                {calculatedAt && (
+                  <> • Updated {formatDateWithAt(calculatedAt).toLowerCase()}</>
+                )}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-text-secondary-700">Helpful?</span>

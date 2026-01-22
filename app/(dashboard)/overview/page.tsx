@@ -51,7 +51,7 @@ export default function OverviewPage() {
 
   // Use Zustand stores (all have built-in caching and request deduplication)
   const { settings, fetchSettings, getXeroConnected } = useSettingsStore()
-  const { data, isLoading, error, fetchOverview, updateOverview } = useOverviewStore()
+  const { data, isLoading, error, fetchOverview, updateOverview, updateInsight } = useOverviewStore()
   const {
     data: healthScore,
     isLoading: healthScoreLoading,
@@ -123,16 +123,20 @@ export default function OverviewPage() {
   const handleResolve = async (insightId: string) => {
     if (actionLoadingId) return // Prevent multiple simultaneous actions
     setActionLoadingId(insightId)
+    
+    // Optimistic update
+    updateInsight(insightId, { is_marked_done: true })
+    setExpandedCardId(null)
+    
     try {
       await apiRequest(`/api/insights/${insightId}`, {
         method: 'PATCH',
         body: JSON.stringify({ is_marked_done: true }),
       })
-      // Refresh data from store
-      await fetchOverview(true)
-      setExpandedCardId(null)
       showToast('Insight marked as resolved', 'success')
     } catch (err) {
+      // Revert on error
+      updateInsight(insightId, { is_marked_done: false })
       showToast('Failed to resolve insight', 'error')
     } finally {
       setActionLoadingId(null)
@@ -142,15 +146,19 @@ export default function OverviewPage() {
   const handleGotIt = async (insightId: string) => {
     if (actionLoadingId) return // Prevent multiple simultaneous actions
     setActionLoadingId(insightId)
+    
+    // Optimistic update
+    updateInsight(insightId, { is_acknowledged: true })
+    
     try {
       await apiRequest(`/api/insights/${insightId}`, {
         method: 'PATCH',
         body: JSON.stringify({ is_acknowledged: true }),
       })
-      // Refresh data from store
-      await fetchOverview(true)
       showToast('Insight acknowledged', 'success')
     } catch (err) {
+      // Revert on error
+      updateInsight(insightId, { is_acknowledged: false })
       showToast('Failed to acknowledge insight', 'error')
     } finally {
       setActionLoadingId(null)
@@ -279,7 +287,7 @@ export default function OverviewPage() {
   const hasNoInsights = !data || data.insights.length === 0
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-bg-primary">
       <div className="mx-auto max-w-[1280px] px-4 py-6 md:px-8 md:py-6">
         {/* Header */}
         <div className="mb-8">
@@ -420,8 +428,7 @@ export default function OverviewPage() {
             {/* Also worth knowing */}
             {okInsights.length > 0 && (
               <section>
-                <h2 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
-                  <span className="h-0.5 w-8 bg-text-brand-tertiary-600"></span>
+                <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
                   ALSO WORTH KNOWING
                 </h2>
                 <div className="space-y-3">
@@ -442,8 +449,7 @@ export default function OverviewPage() {
             {/* Coming up */}
             {data?.upcoming_commitments && data.upcoming_commitments.large_upcoming_bills.length > 0 && (
               <section>
-                <h2 className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
-                  <span className="h-0.5 w-8 bg-text-brand-tertiary-600"></span>
+                <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
                   COMING UP
                 </h2>
                 <div className="space-y-3">
@@ -480,14 +486,21 @@ export default function OverviewPage() {
                 <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
                   RESOLVED
                 </h2>
-                <div className="space-y-2">
+                <div className="rounded-lg border border-border-secondary bg-[#FFFFFF] dark:bg-bg-secondary p-4 space-y-3">
                   {resolvedInsights.map((insight) => (
                     <div
                       key={insight.insight_id}
-                      className="flex items-center gap-3 py-2"
+                      className="flex items-center gap-3"
                     >
-                      <svg className="h-5 w-5 shrink-0 text-text-brand-tertiary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clipPath="url(#clip0_472_401)">
+                          <path d="M14.6667 7.3904V8.00373C14.6659 9.44135 14.2004 10.8402 13.3396 11.9916C12.4788 13.1431 11.2689 13.9854 9.89028 14.393C8.51166 14.8006 7.03821 14.7517 5.68969 14.2535C4.34116 13.7552 3.18981 12.8345 2.40735 11.6284C1.62488 10.4224 1.25323 8.99578 1.34783 7.56128C1.44242 6.12678 1.99818 4.76129 2.93223 3.66845C3.86628 2.57561 5.12856 1.81399 6.53083 1.49717C7.9331 1.18034 9.40022 1.32529 10.7134 1.9104M14.6667 2.66659L8.00004 9.33992L6.00004 7.33992" stroke="#17B26A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_472_401">
+                            <rect width="16" height="16" fill="white"/>
+                          </clipPath>
+                        </defs>
                       </svg>
                       <span className="min-w-0 flex-1 break-words text-sm font-medium text-text-primary-900">{insight.title}</span>
                       <span className="text-xs text-text-quaternary-500">Resolved</span>

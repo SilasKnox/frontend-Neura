@@ -32,6 +32,12 @@
   --colors-background-bg-brand-solid: #0d9488;
   --colors-background-bg-success-secondary: #dcfae6;
   --colors-background-bg-error-secondary: #fee4e2;
+  --colors-background-bg-warning-card: #FFFAEB;
+  --colors-background-bg-warning-action: #FEF0C7;
+  --colors-background-bg-warning-tag: #FFFAEB;
+  --colors-background-bg-warning-input: #F6E3CE;
+  --colors-background-bg-watch-label: #F79009;
+  --colors-background-bg-confidence: #FAFAFA;
 
   /* ============================================
      COLORS - Text Colors
@@ -151,6 +157,12 @@
   --colors-background-bg-brand-solid: #0d9488;
   --colors-background-bg-success-secondary: #1a3a2a;
   --colors-background-bg-error-secondary: #3a1a1a;
+  --colors-background-bg-warning-card: #2a1f0f;
+  --colors-background-bg-warning-action: #3a2a1a;
+  --colors-background-bg-warning-tag: #2a1f0f;
+  --colors-background-bg-warning-input: #3a2a1a;
+  --colors-background-bg-watch-label: #F79009;
+  --colors-background-bg-confidence: #1a1a1a;
 
   /* Text Colors - Dark Mode */
   --colors-text-text-primary-900: #ededed;
@@ -158,6 +170,8 @@
   --colors-text-text-quaternary-500: #717680;
   --colors-text-text-white: #ffffff;
   --colors-text-text-brand-tertiary-600: #14b8a6;
+  --colors-text-text-warning-link: #FAB75D;
+  --colors-text-text-warning-dark: #fbbf24;
 
   /* Border Colors - Dark Mode */
   --colors-border-border-primary: #2a2a2a;
@@ -199,6 +213,12 @@
   --color-bg-brand-solid: var(--colors-background-bg-brand-solid);
   --color-bg-success-secondary: var(--colors-background-bg-success-secondary);
   --color-bg-error-secondary: var(--colors-background-bg-error-secondary);
+  --color-bg-warning-card: var(--colors-background-bg-warning-card);
+  --color-bg-warning-action: var(--colors-background-bg-warning-action);
+  --color-bg-warning-tag: var(--colors-background-bg-warning-tag);
+  --color-bg-warning-input: var(--colors-background-bg-warning-input);
+  --color-bg-watch-label: var(--colors-background-bg-watch-label);
+  --color-bg-confidence: var(--colors-background-bg-confidence);
   
   /* Text Colors */
   --color-text-primary-900: var(--colors-text-text-primary-900);
@@ -206,6 +226,8 @@
   --color-text-quaternary-500: var(--colors-text-text-quaternary-500);
   --color-text-white: var(--colors-text-text-white);
   --color-text-brand-tertiary-600: var(--colors-text-text-brand-tertiary-600);
+  --color-text-warning-link: var(--colors-text-text-warning-link);
+  --color-text-warning-dark: var(--colors-text-text-warning-dark);
   
   /* Border Colors */
   --color-border-primary: var(--colors-border-border-primary);

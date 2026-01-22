@@ -5,9 +5,12 @@ import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 
 export default function SignupPage() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [organizationName, setOrganizationName] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [organizationError, setOrganizationError] = useState<string | null>(null)
@@ -18,24 +21,32 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setNameError(null)
     setEmailError(null)
     setPasswordError(null)
     setOrganizationError(null)
 
-    // Email validation
+    // Validation
+    if (!name) {
+      setNameError('Please fill out this field.')
+      return
+    }
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!email) {
       setEmailError('Please fill out this field.')
       return
     }
     if (!emailRegex.test(email)) {
-      setEmailError('Must be a valid email address')
+      setEmailError('Please enter a valid email address')
       return
     }
+    
     if (!organizationName) {
       setOrganizationError('Please fill out this field.')
       return
     }
+    
     if (!password) {
       setPasswordError('Please fill out this field.')
       return
@@ -48,7 +59,7 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      await signUp(email, password, organizationName)
+      await signUp(name, email, password, organizationName)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign up')
       setLoading(false)
@@ -57,6 +68,7 @@ export default function SignupPage() {
 
   const handleGoogleSignIn = async () => {
     setError(null)
+    setNameError(null)
     setEmailError(null)
     setPasswordError(null)
     setOrganizationError(null)
@@ -72,6 +84,7 @@ export default function SignupPage() {
 
   const handleFacebookSignIn = async () => {
     setError(null)
+    setNameError(null)
     setEmailError(null)
     setPasswordError(null)
     setOrganizationError(null)
@@ -80,6 +93,7 @@ export default function SignupPage() {
 
   const handleAppleSignIn = async () => {
     setError(null)
+    setNameError(null)
     setEmailError(null)
     setPasswordError(null)
     setOrganizationError(null)
@@ -123,54 +137,107 @@ export default function SignupPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name Field */}
+          <div className="space-y-1">
+            <label htmlFor="name" className="sr-only">
+              Name
+            </label>
+            <div className="relative">
+              <input
+                id="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  setNameError(null)
+                }}
+                className={`w-full rounded-md border ${
+                  nameError ? 'border-red-500 pr-10' : 'border-border-secondary'
+                } bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
+                placeholder="Enter your name"
+              />
+              {nameError && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="white" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            {nameError && (
+              <p className="text-sm text-red-500">
+                {nameError}
+              </p>
+            )}
+          </div>
+
           {/* Organization Name Field */}
           <div className="space-y-1">
-            <label htmlFor="organization" className="block text-sm font-medium text-text-primary-900">
+            <label htmlFor="organization" className="sr-only">
               Organization Name
             </label>
-            <input
-              id="organization"
-              type="text"
-              required
-              value={organizationName}
-              onChange={(e) => {
-                setOrganizationName(e.target.value)
-                setOrganizationError(null)
-              }}
-              className={`w-full rounded-md border ${
-                organizationError ? 'border-orange-500' : 'border-border-secondary'
-              } bg-bg-primary px-2 py-1.5 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
-              placeholder="My Company"
-            />
+            <div className="relative">
+              <input
+                id="organization"
+                type="text"
+                required
+                value={organizationName}
+                onChange={(e) => {
+                  setOrganizationName(e.target.value)
+                  setOrganizationError(null)
+                }}
+                className={`w-full rounded-md border ${
+                  organizationError ? 'border-red-500 pr-10' : 'border-border-secondary'
+                } bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
+                placeholder="Enter your company name"
+              />
+              {organizationError && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="white" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
+                  </svg>
+                </div>
+              )}
+            </div>
             {organizationError && (
-              <div className="flex items-center gap-1 rounded-md bg-orange-100 px-2 py-1 text-sm text-orange-800">
-                <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <span>{organizationError}</span>
-              </div>
+              <p className="text-sm text-red-500">
+                {organizationError}
+              </p>
             )}
           </div>
 
           {/* Email Field */}
           <div className="space-y-1">
-            <label htmlFor="email" className="block text-sm font-medium text-text-primary-900">
+            <label htmlFor="email" className="sr-only">
               Email
             </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                setEmailError(null)
-              }}
-              className={`w-full rounded-md border ${
-                emailError ? 'border-red-500' : 'border-border-secondary'
-              } bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
-              placeholder="Enter your email"
-            />
+            <div className="relative">
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setEmailError(null)
+                }}
+                className={`w-full rounded-md border ${
+                  emailError ? 'border-red-500 pr-10' : 'border-border-secondary'
+                } bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
+                placeholder="Enter your email"
+              />
+              {emailError && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="white" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
+                  </svg>
+                </div>
+              )}
+            </div>
             {emailError && (
               <p className="text-sm text-red-500">
                 {emailError}
@@ -180,31 +247,55 @@ export default function SignupPage() {
 
           {/* Password Field */}
           <div className="space-y-1">
-            <label htmlFor="password" className="block text-sm font-medium text-text-primary-900">
+            <label htmlFor="password" className="sr-only">
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                setPasswordError(null)
-              }}
-              className={`w-full rounded-md border ${
-                passwordError ? 'border-orange-500' : 'border-border-secondary'
-              } bg-bg-primary px-2 py-1.5 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  setPasswordError(null)
+                }}
+                className={`w-full rounded-md border ${
+                  passwordError ? 'border-red-500 pr-10' : 'border-border-secondary pr-10'
+                } bg-bg-primary px-3 py-2 text-sm text-text-primary-900 placeholder:text-text-quaternary-500 focus:border-fg-brand-primary-600 focus:outline-none focus:ring-1 focus:ring-fg-brand-primary-600`}
+                placeholder="Enter your password"
+              />
+              {passwordError ? (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="white" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01" />
+                  </svg>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-quaternary-500 hover:text-text-primary-900"
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m13.42 13.42l-3.29-3.29M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              )}
+            </div>
             {passwordError ? (
-              <div className="flex items-center gap-1 rounded-md bg-orange-100 px-2 py-1 text-sm text-orange-800">
-                <svg className="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <span>{passwordError}</span>
-              </div>
+              <p className="text-sm text-red-500">
+                {passwordError}
+              </p>
             ) : (
               <p className="text-xs text-text-quaternary-500">
                 Must be at least 8 characters

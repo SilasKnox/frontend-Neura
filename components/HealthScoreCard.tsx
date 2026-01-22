@@ -253,7 +253,7 @@ export default function HealthScoreCard({ data, isLoading, onRefresh }: HealthSc
     <>
 
 
-      <div className="bg-bg-primary rounded-xl border border-brand-solid p-6">
+      <div className="bg-[#FCFCFC] dark:bg-bg-primary rounded-xl border border-brand-solid p-6">
         {/* Badges */}
         <div className="flex items-center gap-2 mb-6">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${grade.badgeClass}`}>

@@ -89,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   const signUp = async (
+    name: string,
     email: string,
     password: string,
     organizationName: string
@@ -96,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await fetch('/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, organizationName }),
+      body: JSON.stringify({ name, email, password, organizationName }),
     })
 
     const data = await response.json()

@@ -5,7 +5,7 @@ import { apiRequestWithToken } from '@/lib/api/client'
 
 export async function POST(request: Request) {
   try {
-    const { email, password, organizationName } = await request.json()
+    const { name, email, password, organizationName } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 })
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       password,
       options: {
         data: {
+          name: name || '',
           organization_name: organizationName,
         },
       },

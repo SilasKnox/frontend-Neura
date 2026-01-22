@@ -73,6 +73,7 @@ interface OverviewStore {
   // Actions
   fetchOverview: (forceRefresh?: boolean) => Promise<void>
   updateOverview: (data: OverviewData) => void
+  updateInsight: (insightId: string, updates: Partial<Insight>) => void
   clearOverview: () => void
 }
 
@@ -129,6 +130,24 @@ export const useOverviewStore = create<OverviewStore>((set, get) => ({
       data,
       lastFetched: Date.now(),
       error: null,
+    })
+  },
+
+  updateInsight: (insightId: string, updates: Partial<Insight>) => {
+    const state = get()
+    if (!state.data) return
+
+    const updatedInsights = state.data.insights.map(insight =>
+      insight.insight_id === insightId
+        ? { ...insight, ...updates }
+        : insight
+    )
+
+    set({
+      data: {
+        ...state.data,
+        insights: updatedInsights,
+      },
     })
   },
 
