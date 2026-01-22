@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '@/context/ThemeContext'
 import { useAuth } from '@/context/AuthContext'
 
@@ -10,6 +10,7 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
   const { user, isAdmin } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSettingsClick = () => {
@@ -48,20 +49,32 @@ export default function Navbar() {
         <div className="hidden items-center gap-6 md:flex">
             <Link
               href="/overview"
-              className="text-sm font-medium text-text-primary-900 transition-colors hover:text-text-brand-tertiary-600 cursor-pointer"
+              className={`text-sm font-medium transition-colors hover:text-text-brand-tertiary-600 cursor-pointer ${
+                pathname === '/overview' 
+                  ? 'text-text-brand-tertiary-600 font-semibold' 
+                  : 'text-text-primary-900'
+              }`}
             >
               Overview
             </Link>
             <Link
               href="/insights"
-              className="text-sm font-medium text-text-primary-900 transition-colors hover:text-text-brand-tertiary-600 cursor-pointer"
+              className={`text-sm font-medium transition-colors hover:text-text-brand-tertiary-600 cursor-pointer ${
+                pathname === '/insights' 
+                  ? 'text-text-brand-tertiary-600 font-semibold' 
+                  : 'text-text-primary-900'
+              }`}
             >
               Insights
             </Link>
             {isAdmin && (
               <Link
                 href="/admin"
-                className="text-sm font-medium text-text-primary-900 transition-colors hover:text-text-brand-tertiary-600 cursor-pointer"
+                className={`text-sm font-medium transition-colors hover:text-text-brand-tertiary-600 cursor-pointer ${
+                  pathname === '/admin' 
+                    ? 'text-text-brand-tertiary-600 font-semibold' 
+                    : 'text-text-primary-900'
+                }`}
               >
                 Admin
               </Link>
@@ -211,14 +224,22 @@ export default function Navbar() {
             <Link
               href="/overview"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+              className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium transition-colors hover:bg-bg-secondary ${
+                pathname === '/overview' 
+                  ? 'text-text-brand-tertiary-600 bg-bg-secondary font-semibold' 
+                  : 'text-text-primary-900'
+              }`}
             >
               <span>Overview</span>
             </Link>
             <Link
               href="/insights"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+              className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium transition-colors hover:bg-bg-secondary ${
+                pathname === '/insights' 
+                  ? 'text-text-brand-tertiary-600 bg-bg-secondary font-semibold' 
+                  : 'text-text-primary-900'
+              }`}
             >
               <span>Insights</span>
             </Link>
@@ -226,7 +247,11 @@ export default function Navbar() {
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary"
+                className={`flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium transition-colors hover:bg-bg-secondary ${
+                  pathname === '/admin' 
+                    ? 'text-text-brand-tertiary-600 bg-bg-secondary font-semibold' 
+                    : 'text-text-primary-900'
+                }`}
               >
                 <span>Admin</span>
               </Link>
