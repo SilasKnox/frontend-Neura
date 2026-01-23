@@ -100,85 +100,76 @@ export default function WatchCard({
 
   return (
     <div className="relative rounded-tl-2xl rounded-bl-2xl rounded-tr-lg rounded-br-lg border border-border-secondary bg-bg-warning-card dark:bg-bg-warning-card p-4 border-l-[3px] border-l-[#F79009]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          {/* Badges Row - Figma 1.5 */}
-          <div className="mb-2 flex items-center gap-2">
-            <span className="rounded-full bg-[#F79009] px-2.5 py-0.5 text-xs font-semibold text-white uppercase">
-              WATCH
-            </span>
-            <span className="flex items-center gap-1.5 rounded-full border border-border-primary bg-bg-confidence dark:bg-bg-confidence px-2.5 py-0.5 text-xs font-medium text-text-secondary-700">
-              <svg className="w-3.5 h-3.5 text-text-brand-tertiary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {insight.confidence_level === 'high' ? 'High' : insight.confidence_level === 'medium' ? 'Medium' : 'Low'} confidence
-            </span>
-          </div>
+      {/* Timeframe badge - absolutely positioned in top right */}
+      {timeframe && (
+        <span className="absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-bg-warning-tag dark:bg-bg-warning-tag border border-bg-warning-input dark:border-bg-warning-input px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-text-warning-dark">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>~{typeof timeframe.value === 'number' ? timeframe.value : timeframe.value} days</span>
+        </span>
+      )}
 
-          {/* Title */}
-          <h3 className="mb-1 break-words text-base font-semibold text-text-primary-900">{insight.title}</h3>
-
-          {/* Generated Date */}
-          {/* <p className="mb-2 text-xs text-text-quaternary-500">
-            {formatDateWithAt(insight.generated_at)}
-          </p> */}
-
-          {/* Financial Detail Badge */}
-          {financialDetail && (
-            <div className="mb-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-bg-warning-tag dark:bg-bg-warning-tag border border-bg-warning-input dark:border-bg-warning-input px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-text-warning-dark">
-                <span>$</span>
-                <span>{typeof financialDetail.value === 'number'
-                  ? `${financialDetail.value >= 0 ? '+' : ''}$${Math.abs(financialDetail.value).toLocaleString()} vs average`
-                  : `${financialDetail.value} vs average`}
-                </span>
-              </span>
-            </div>
-          )}
-
-          {/* Summary */}
-          <p className="mb-3 break-words text-sm leading-relaxed text-text-secondary-700">{insight.summary}</p>
-
-          {/* Suggested Action Box - Figma shows orange/coral box */}
-          {suggestedAction && !isExpanded && (
-            <div className="mb-3 rounded-md bg-bg-warning-action dark:bg-bg-warning-action border border-bg-warning-input dark:border-bg-warning-input p-3">
-              <p className="text-xs font-semibold text-[#9a3412] dark:text-text-warning-dark mb-1">Suggested action</p>
-              <p className="text-sm text-[#9a3412] dark:text-[#fdba74]">{suggestedAction}</p>
-            </div>
-          )}
-
-          {/* Bottom Row - How we worked this out + Resolve button */}
-          <div className="flex items-center justify-between mt-3">
-            <button
-              onClick={onExpand}
-              className="flex items-center gap-1 text-sm font-semibold text-[#F79009] hover:underline cursor-pointer"
-            >
-              <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              How we worked this out
-            </button>
-            <button
-              onClick={onResolve}
-              disabled={isLoading}
-              className="rounded-md border border-border-primary bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Resolving...' : 'Resolve'}
-            </button>
-          </div>
+      <div className="pr-24">
+        {/* Badges Row - Figma 1.5 */}
+        <div className="mb-2 flex items-center gap-2">
+          <span className="rounded-full bg-[#F79009] px-2.5 py-0.5 text-xs font-semibold text-white uppercase">
+            WATCH
+          </span>
+          <span className="flex items-center gap-1.5 rounded-full border border-border-primary bg-bg-confidence dark:bg-bg-confidence px-2.5 py-0.5 text-xs font-medium text-text-secondary-700">
+            <svg className="w-3.5 h-3.5 text-text-brand-tertiary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {insight.confidence_level === 'high' ? 'High' : insight.confidence_level === 'medium' ? 'Medium' : 'Low'} confidence
+          </span>
         </div>
 
-        {/* Right Side - Timeframe only (only render if timeframe exists) */}
-        {timeframe && (
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-warning-tag dark:bg-bg-warning-tag border border-bg-warning-input dark:border-bg-warning-input px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-text-warning-dark">
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>~{typeof timeframe.value === 'number' ? timeframe.value : timeframe.value} days</span>
+        {/* Title */}
+        <h3 className="mb-1 break-words text-base font-semibold text-text-primary-900">{insight.title}</h3>
+
+        {/* Financial Detail Badge */}
+        {financialDetail && (
+          <div className="mb-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-bg-warning-tag dark:bg-bg-warning-tag border border-bg-warning-input dark:border-bg-warning-input px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-text-warning-dark">
+              <span>$</span>
+              <span>{typeof financialDetail.value === 'number'
+                ? `${financialDetail.value >= 0 ? '+' : ''}$${Math.abs(financialDetail.value).toLocaleString()} vs average`
+                : `${financialDetail.value} vs average`}
+              </span>
             </span>
           </div>
         )}
+
+        {/* Summary */}
+        <p className="mb-3 break-words text-sm leading-relaxed text-text-secondary-700">{insight.summary}</p>
+
+        {/* Suggested Action Box - Figma shows orange/coral box */}
+        {suggestedAction && !isExpanded && (
+          <div className="mb-3 rounded-md bg-bg-warning-action dark:bg-bg-warning-action border border-bg-warning-input dark:border-bg-warning-input p-3">
+            <p className="text-xs font-semibold text-[#9a3412] dark:text-text-warning-dark mb-1">Suggested action</p>
+            <p className="text-sm text-[#9a3412] dark:text-[#fdba74]">{suggestedAction}</p>
+          </div>
+        )}
+
+        {/* Bottom Row - How we worked this out + Resolve button */}
+        <div className="flex items-center justify-between mt-3">
+          <button
+            onClick={onExpand}
+            className="flex items-center gap-1 text-sm font-semibold text-[#F79009] hover:underline cursor-pointer"
+          >
+            <svg className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            How we worked this out
+          </button>
+          <button
+            onClick={onResolve}
+            disabled={isLoading}
+            className="rounded-md border border-border-primary bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Resolving...' : 'Resolve'}
+          </button>
+        </div>
       </div>
 
       {/* Expanded Content - Figma 1.6 */}
