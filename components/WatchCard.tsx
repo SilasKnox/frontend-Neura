@@ -168,17 +168,17 @@ export default function WatchCard({
           </div>
         </div>
 
-        {/* Right Side - Timeframe only */}
-        <div className="flex flex-col items-end gap-2">
-          {timeframe && (
+        {/* Right Side - Timeframe only (only render if timeframe exists) */}
+        {timeframe && (
+          <div className="flex flex-col items-end gap-2 shrink-0">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-warning-tag dark:bg-bg-warning-tag border border-bg-warning-input dark:border-bg-warning-input px-2.5 py-0.5 text-xs font-medium text-[#9a3412] dark:text-text-warning-dark">
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>~{typeof timeframe.value === 'number' ? timeframe.value : timeframe.value} days</span>
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Expanded Content - Figma 1.6 */}
