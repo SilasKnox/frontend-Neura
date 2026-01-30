@@ -8,7 +8,7 @@ import { apiRequest } from '@/lib/api/client'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { SettingsSkeleton } from '@/components/SettingsSkeleton'
 import XeroConnectModal from '@/components/XeroConnectModal'
-import AIProviderSettings from '@/components/AIProviderSettings'
+import AIProviderSettings, { AIProviderConfig } from '@/components/AIProviderSettings'
 
 interface XeroIntegration {
   is_connected: boolean
@@ -35,6 +35,10 @@ export default function SettingsPage() {
   const [disconnecting, setDisconnecting] = useState(false)
   const [orgName, setOrgName] = useState('')
   const [savingOrgName, setSavingOrgName] = useState(false)
+
+  // AI Config State (for admin parallel fetching)
+  const [aiConfig, setAiConfig] = useState<AIProviderConfig | null>(null)
+  const [aiLoading, setAiLoading] = useState(true)
 
   // Sync org name with settings
   useEffect(() => {
@@ -64,9 +68,35 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (user) {
-      fetchSettings() // Use store's fetchSettings
+      const loadData = async () => {
+        // AI loading starts true, settings loading handled by store
+        setAiLoading(true)
+
+        const promises: Promise<any>[] = [fetchSettings()]
+
+        if (isAdmin) {
+          promises.push(
+            apiRequest<AIProviderConfig>('/settings/ai-provider')
+              .then(data => setAiConfig(data))
+              .catch(err => console.error('Failed to load AI config:', err))
+          )
+        } else {
+          // If not admin, we don't fetch, so stop loading immediately
+          setAiLoading(false)
+        }
+
+        try {
+          await Promise.all(promises)
+        } catch (error) {
+          console.error('Error loading settings:', error)
+        } finally {
+          setAiLoading(false)
+        }
+      }
+
+      loadData()
     }
-  }, [user, fetchSettings])
+  }, [user, isAdmin, fetchSettings])
 
   // Combine store error with local error
   useEffect(() => {
@@ -120,7 +150,8 @@ export default function SettingsPage() {
     }
   }
 
-  if (isLoading) {
+  // Show skeleton if either store is loading OR AI config is loading (for admins)
+  if (isLoading || (isAdmin && aiLoading)) {
     return <SettingsSkeleton />
   }
 
@@ -384,7 +415,7 @@ export default function SettingsPage() {
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
                 AI PROVIDER
               </h2>
-              <AIProviderSettings />
+              <AIProviderSettings initialConfig={aiConfig} isLoading={aiLoading} />
             </div>
           )}
         </div>

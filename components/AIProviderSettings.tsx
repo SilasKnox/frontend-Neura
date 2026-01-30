@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { apiRequest } from '@/lib/api/client'
+import { Skeleton } from './Skeleton'
 
-interface AIProviderConfig {
+export interface AIProviderConfig {
     active_provider: string
     validation_status: string
     last_tested_at: string | null
@@ -12,6 +13,11 @@ interface AIProviderConfig {
     temperature: number
     top_p: number
     model: string | null
+}
+
+interface AIProviderSettingsProps {
+    initialConfig?: AIProviderConfig | null
+    isLoading?: boolean
 }
 
 interface TestConnectionResponse {
@@ -33,9 +39,9 @@ const PROVIDER_LABELS: Record<string, string> = {
     gemini: 'Gemini (Google)',
 }
 
-export default function AIProviderSettings() {
-    const [config, setConfig] = useState<AIProviderConfig | null>(null)
-    const [loading, setLoading] = useState(true)
+export default function AIProviderSettings({ initialConfig, isLoading = false }: AIProviderSettingsProps) {
+    const [config, setConfig] = useState<AIProviderConfig | null>(initialConfig || null)
+    const [loading, setLoading] = useState(!initialConfig && !isLoading)
     const [error, setError] = useState<string | null>(null)
 
     // Form state
@@ -80,8 +86,42 @@ export default function AIProviderSettings() {
     }, [])
 
     useEffect(() => {
-        fetchConfig()
-    }, [fetchConfig])
+        if (!initialConfig && !isLoading) {
+            fetchConfig()
+        }
+    }, [fetchConfig, initialConfig, isLoading])
+
+    // Update local state when props change
+    useEffect(() => {
+        if (initialConfig) {
+            setConfig(initialConfig)
+            setProvider(initialConfig.active_provider)
+            setTemperature(initialConfig.temperature)
+            setTopP(initialConfig.top_p)
+
+            // Logic to set model matches fetchConfig
+            if (initialConfig.model) {
+                if (PROVIDER_MODELS[initialConfig.active_provider]?.includes(initialConfig.model)) {
+                    setModel(initialConfig.model)
+                    setCustomModel(false)
+                } else {
+                    setModel(initialConfig.model)
+                    setCustomModel(true)
+                }
+            } else {
+                setModel(PROVIDER_MODELS[initialConfig.active_provider]?.[0] || '')
+                setCustomModel(false)
+            }
+            setLoading(false)
+        }
+    }, [initialConfig])
+
+    // Respect loading prop
+    useEffect(() => {
+        if (isLoading !== undefined) {
+            setLoading(isLoading)
+        }
+    }, [isLoading])
 
     useEffect(() => {
         if (!customModel) {
@@ -161,12 +201,45 @@ export default function AIProviderSettings() {
         }
     }
 
+    // Loading Skeleton
     if (loading) {
         return (
-            <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4 animate-pulse">
-                <div className="h-6 bg-bg-tertiary rounded w-1/3 mb-4"></div>
-                <div className="h-10 bg-bg-tertiary rounded mb-4"></div>
-                <div className="h-10 bg-bg-tertiary rounded"></div>
+            <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4 space-y-5">
+                {/* Provider Skeleton */}
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-24 rounded" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+
+                {/* Model Skeleton */}
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-24 rounded" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+
+                {/* API Key Skeleton */}
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-24 rounded" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                </div>
+
+                {/* Sliders Skeleton */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24 rounded" />
+                        <Skeleton className="h-2 w-full rounded-full" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24 rounded" />
+                        <Skeleton className="h-2 w-full rounded-full" />
+                    </div>
+                </div>
+
+                {/* Actions Skeleton */}
+                <div className="flex justify-end gap-3 pt-2">
+                    <Skeleton className="h-9 w-24 rounded-md" />
+                    <Skeleton className="h-9 w-24 rounded-md" />
+                </div>
             </div>
         )
     }
@@ -175,95 +248,103 @@ export default function AIProviderSettings() {
         <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4 space-y-5">
             {/* Error Message */}
             {error && (
-                <div className="rounded-md bg-bg-error-secondary p-3 text-sm text-text-primary-900">
+                <div className="rounded-md bg-bg-error-secondary p-3 text-sm text-[#d92d20]">
                     {error}
                 </div>
             )}
 
             {/* Provider Selection */}
-            <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                    <label className="text-sm font-medium text-text-primary-900 shrink-0">
-                        Provider
-                    </label>
+            <div className="space-y-1.5">
+                <label className="text-xs font-medium text-text-secondary-700">
+                    Provider
+                </label>
+                <div className="relative">
                     <select
                         value={provider}
                         onChange={(e) => setProvider(e.target.value)}
-                        className="flex-1 rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-brand-solid focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                        className="w-full appearance-none rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
                     >
-                        {(config?.available_providers || ['openai', 'anthropic', 'gemini']).map((p) => (
-                            <option key={p} value={p}>
-                                {PROVIDER_LABELS[p] || p}
+                        {Object.entries(PROVIDER_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                                {label}
                             </option>
                         ))}
                     </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-quaternary-500">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
-                <p className="text-xs text-text-quaternary-500">
-                    Select which provider Neura uses for AI features.
-                </p>
             </div>
 
             {/* Model Selection */}
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary-900 block">
-                    Model
-                </label>
-                <div className="flex gap-2">
-                    {customModel ? (
-                        <input
-                            type="text"
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                            placeholder="Enter custom model name"
-                            className="flex-1 rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-brand-solid focus:outline-none focus:ring-1 focus:ring-brand-solid"
-                        />
-                    ) : (
-                        <select
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                            className="flex-1 rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-brand-solid focus:outline-none focus:ring-1 focus:ring-brand-solid"
-                        >
-                            {PROVIDER_MODELS[provider]?.map((m) => (
-                                <option key={m} value={m}>
-                                    {m}
-                                </option>
-                            ))}
-                        </select>
-                    )}
+            <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                    <label className="text-xs font-medium text-text-secondary-700">
+                        Model
+                    </label>
                     <button
                         type="button"
                         onClick={() => {
                             setCustomModel(!customModel)
-                            if (!customModel) {
-                                setModel('')
-                            } else {
-                                setModel(PROVIDER_MODELS[provider]?.[0] || '')
-                            }
+                            if (!customModel) setModel('')
+                            else setModel(PROVIDER_MODELS[provider]?.[0] || '')
                         }}
                         className="text-xs text-text-brand-tertiary-600 hover:underline whitespace-nowrap px-2"
                     >
                         {customModel ? 'Preset' : 'Edit'}
                     </button>
                 </div>
+                <div className="relative">
+                    {customModel ? (
+                        <input
+                            type="text"
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
+                            placeholder="e.g. gpt-4-32k"
+                            className="w-full rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
+                        />
+                    ) : (
+                        <>
+                            <select
+                                value={model}
+                                onChange={(e) => setModel(e.target.value)}
+                                className="w-full appearance-none rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
+                            >
+                                {PROVIDER_MODELS[provider]?.map((m) => (
+                                    <option key={m} value={m}>
+                                        {m}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-quaternary-500">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* API Key */}
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary-900 block">
-                    API key
+            <div className="space-y-1.5">
+                <label className="text-xs font-medium text-text-secondary-700">
+                    API Key
                 </label>
                 <div className="relative">
                     <input
                         type={showApiKey ? 'text' : 'password'}
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
-                        placeholder={config?.has_key_configured ? '••••••••••••' : 'Enter API key'}
-                        className="w-full rounded-md border border-border-secondary bg-bg-primary px-3 py-2 pr-10 text-sm text-text-primary-900 focus:border-brand-solid focus:outline-none focus:ring-1 focus:ring-brand-solid"
+                        placeholder={`Enter ${PROVIDER_LABELS[provider]} API Key`}
+                        className="w-full rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
                     />
                     <button
                         type="button"
                         onClick={() => setShowApiKey(!showApiKey)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-quaternary-500 hover:text-text-primary-900"
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-text-quaternary-500 hover:text-text-secondary-700"
                     >
                         {showApiKey ? (
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,99 +360,95 @@ export default function AIProviderSettings() {
                 </div>
             </div>
 
-            {/* Temperature */}
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-text-primary-900">
-                        Temperature
-                    </label>
-                    <span className="text-sm text-text-quaternary-500">
-                        {temperature.toFixed(1)}
-                    </span>
+            {/* Temperature & Top P Grid */}
+            <div className="grid grid-cols-2 gap-4">
+                {/* Temperature */}
+                <div className="space-y-1.5">
+                    <div className="flex justify-between">
+                        <label className="text-xs font-medium text-text-secondary-700">
+                            Temperature
+                        </label>
+                        <span className="text-xs text-text-quaternary-500">{temperature}</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max="2"
+                        step="0.1"
+                        value={temperature}
+                        onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                        className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-border-secondary accent-text-brand-tertiary-600"
+                    />
                 </div>
-                <input
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="0.1"
-                    value={temperature}
-                    onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                    className="w-full accent-brand-solid"
-                />
-            </div>
 
-            {/* Top P */}
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-text-primary-900">
-                        Top P
-                    </label>
-                    <span className="text-sm text-text-quaternary-500">
-                        {topP.toFixed(2)}
-                    </span>
+                {/* Top P */}
+                <div className="space-y-1.5">
+                    <div className="flex justify-between">
+                        <label className="text-xs font-medium text-text-secondary-700">
+                            Top P
+                        </label>
+                        <span className="text-xs text-text-quaternary-500">{topP}</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={topP}
+                        onChange={(e) => setTopP(parseFloat(e.target.value))}
+                        className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-border-secondary accent-text-brand-tertiary-600"
+                    />
                 </div>
-                <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={topP}
-                    onChange={(e) => setTopP(parseFloat(e.target.value))}
-                    className="w-full accent-brand-solid"
-                />
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex justify-end gap-3 pt-2">
                 <button
                     onClick={handleTestConnection}
-                    disabled={testing || !config?.has_key_configured}
-                    className="rounded-md border border-border-secondary bg-bg-primary px-4 py-2 text-sm font-medium text-text-primary-900 hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={testing || !apiKey}
+                    className="rounded-md border border-border-secondary px-3 py-2 text-sm font-medium text-text-secondary-700 hover:bg-bg-secondary disabled:opacity-50"
                 >
-                    {testing ? 'Testing...' : 'Test connection'}
+                    {testing ? 'Testing...' : 'Test Connection'}
                 </button>
                 <button
                     onClick={handleSave}
-                    disabled={saving || !apiKey.trim()}
-                    className="rounded-md bg-brand-solid px-4 py-2 text-sm font-medium text-text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={saving || !apiKey}
+                    className="rounded-md bg-text-brand-tertiary-600 px-3 py-2 text-sm font-medium text-white hover:bg-text-brand-tertiary-700 disabled:opacity-50"
                 >
-                    {saving ? 'Saving...' : 'Save'}
+                    {saving ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
 
-            {/* Status */}
-            <div className="flex flex-wrap items-center gap-2 text-sm pt-1">
-                <span className="text-text-quaternary-500">Status:</span>
-                <span className={
-                    config?.validation_status === 'valid'
-                        ? 'text-[#079455]'
-                        : config?.validation_status === 'invalid'
-                            ? 'text-[#d92d20]'
-                            : 'text-text-quaternary-500'
-                }>
-                    {config?.validation_status === 'valid' ? 'Valid' :
-                        config?.validation_status === 'invalid' ? 'Invalid' : 'Untested'}
-                </span>
-                {config?.last_tested_at && (
-                    <>
-                        <span className="text-text-quaternary-500">•</span>
-                        <span className="text-text-quaternary-500">Last tested:</span>
-                        <span className="text-text-brand-tertiary-600">
-                            {formatDate(config.last_tested_at)}
-                        </span>
-                    </>
-                )}
-            </div>
+            {/* Status (Hidden if saved/fresh) */}
+            {
+                config && !loading && !saving && !testing && !testResult && (
+                    <div className="flex items-center gap-2 text-xs text-text-quaternary-500 justify-end">
+                        {config.validation_status === 'valid' && (
+                            <span className="flex items-center gap-1 text-[#079455]">
+                                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Verified
+                            </span>
+                        )}
+                        {config.last_tested_at && (
+                            <span>Last tested: {new Date(config.last_tested_at).toLocaleDateString()}</span>
+                        )}
+                    </div>
+                )
+            }
 
             {/* Test Result */}
-            {testResult && (
-                <div className={`rounded-md p-3 text-sm ${testResult.valid
-                    ? 'bg-[#ecfdf3] text-[#079455] dark:bg-[#079455]/10'
-                    : 'bg-bg-error-secondary text-[#d92d20]'
-                    }`}>
-                    {testResult.message}
-                </div>
-            )}
-        </div>
+            {
+                testResult && (
+                    <div className={`rounded-md p-3 text-sm ${testResult.valid
+                        ? 'bg-[#ecfdf3] text-[#079455] dark:bg-[#079455]/10'
+                        : 'bg-bg-error-secondary text-[#d92d20]'
+                        }`}>
+                        {testResult.message}
+                    </div>
+                )
+            }
+        </div >
     )
 }
