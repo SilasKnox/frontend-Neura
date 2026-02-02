@@ -18,6 +18,7 @@ export interface AIProviderConfig {
 interface AIProviderSettingsProps {
     initialConfig?: AIProviderConfig | null
     isLoading?: boolean
+    onConfigUpdate?: (config: AIProviderConfig) => void
 }
 
 interface TestConnectionResponse {
@@ -39,7 +40,7 @@ const PROVIDER_LABELS: Record<string, string> = {
     gemini: 'Gemini (Google)',
 }
 
-export default function AIProviderSettings({ initialConfig, isLoading = false }: AIProviderSettingsProps) {
+export default function AIProviderSettings({ initialConfig, isLoading = false, onConfigUpdate }: AIProviderSettingsProps) {
     const [config, setConfig] = useState<AIProviderConfig | null>(initialConfig || null)
     const [loading, setLoading] = useState(!initialConfig && !isLoading)
     const [error, setError] = useState<string | null>(null)
@@ -49,8 +50,6 @@ export default function AIProviderSettings({ initialConfig, isLoading = false }:
     const [apiKey, setApiKey] = useState('')
     const [model, setModel] = useState('')
     const [customModel, setCustomModel] = useState(false)
-    const [temperature, setTemperature] = useState(0.1)
-    const [topP, setTopP] = useState(1.0)
 
     // UI state
     const [showApiKey, setShowApiKey] = useState(false)
@@ -64,8 +63,6 @@ export default function AIProviderSettings({ initialConfig, isLoading = false }:
             const data = await apiRequest<AIProviderConfig>('/settings/ai-provider')
             setConfig(data)
             setProvider(data.active_provider)
-            setTemperature(data.temperature)
-            setTopP(data.top_p)
             if (data.model) {
                 if (PROVIDER_MODELS[data.active_provider]?.includes(data.model)) {
                     setModel(data.model)
@@ -96,8 +93,6 @@ export default function AIProviderSettings({ initialConfig, isLoading = false }:
         if (initialConfig) {
             setConfig(initialConfig)
             setProvider(initialConfig.active_provider)
-            setTemperature(initialConfig.temperature)
-            setTopP(initialConfig.top_p)
 
             // Logic to set model matches fetchConfig
             if (initialConfig.model) {
@@ -146,13 +141,16 @@ export default function AIProviderSettings({ initialConfig, isLoading = false }:
                     provider,
                     api_key: apiKey,
                     model: model || null,
-                    temperature,
-                    top_p: topP,
                 }),
             })
 
             setConfig(data)
             setApiKey('')
+
+            // Update parent store optimistically
+            if (onConfigUpdate) {
+                onConfigUpdate(data)
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to save AI config')
         } finally {
@@ -221,18 +219,6 @@ export default function AIProviderSettings({ initialConfig, isLoading = false }:
                 <div className="space-y-2">
                     <Skeleton className="h-4 w-24 rounded" />
                     <Skeleton className="h-10 w-full rounded-md" />
-                </div>
-
-                {/* Sliders Skeleton */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-24 rounded" />
-                        <Skeleton className="h-2 w-full rounded-full" />
-                    </div>
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-24 rounded" />
-                        <Skeleton className="h-2 w-full rounded-full" />
-                    </div>
                 </div>
 
                 {/* Actions Skeleton */}
@@ -357,47 +343,6 @@ export default function AIProviderSettings({ initialConfig, isLoading = false }:
                             </svg>
                         )}
                     </button>
-                </div>
-            </div>
-
-            {/* Temperature & Top P Grid */}
-            <div className="grid grid-cols-2 gap-4">
-                {/* Temperature */}
-                <div className="space-y-1.5">
-                    <div className="flex justify-between">
-                        <label className="text-xs font-medium text-text-secondary-700">
-                            Temperature
-                        </label>
-                        <span className="text-xs text-text-quaternary-500">{temperature}</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="2"
-                        step="0.1"
-                        value={temperature}
-                        onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                        className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-border-secondary accent-text-brand-tertiary-600"
-                    />
-                </div>
-
-                {/* Top P */}
-                <div className="space-y-1.5">
-                    <div className="flex justify-between">
-                        <label className="text-xs font-medium text-text-secondary-700">
-                            Top P
-                        </label>
-                        <span className="text-xs text-text-quaternary-500">{topP}</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={topP}
-                        onChange={(e) => setTopP(parseFloat(e.target.value))}
-                        className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-border-secondary accent-text-brand-tertiary-600"
-                    />
                 </div>
             </div>
 

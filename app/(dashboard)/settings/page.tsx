@@ -29,16 +29,22 @@ export default function SettingsPage() {
   const { user, signOut, isAdmin } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { settings, isLoading, error: storeError, fetchSettings, updateOrgName } = useSettingsStore()
+  const {
+    settings,
+    isLoading,
+    error: storeError,
+    fetchSettings,
+    updateOrgName,
+    aiConfig,
+    aiLoading,
+    fetchAIConfig,
+    updateAIConfig,
+  } = useSettingsStore()
   const [error, setError] = useState<string | null>(null)
   const [showXeroModal, setShowXeroModal] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
   const [orgName, setOrgName] = useState('')
   const [savingOrgName, setSavingOrgName] = useState(false)
-
-  // AI Config State (for admin parallel fetching)
-  const [aiConfig, setAiConfig] = useState<AIProviderConfig | null>(null)
-  const [aiLoading, setAiLoading] = useState(true)
 
   // Sync org name with settings
   useEffect(() => {
@@ -69,34 +75,24 @@ export default function SettingsPage() {
   useEffect(() => {
     if (user) {
       const loadData = async () => {
-        // AI loading starts true, settings loading handled by store
-        setAiLoading(true)
-
+        // Fetch both settings and AI config in parallel if admin
         const promises: Promise<any>[] = [fetchSettings()]
 
         if (isAdmin) {
-          promises.push(
-            apiRequest<AIProviderConfig>('/settings/ai-provider')
-              .then(data => setAiConfig(data))
-              .catch(err => console.error('Failed to load AI config:', err))
-          )
-        } else {
-          // If not admin, we don't fetch, so stop loading immediately
-          setAiLoading(false)
+          promises.push(fetchAIConfig())
         }
 
         try {
           await Promise.all(promises)
         } catch (error) {
           console.error('Error loading settings:', error)
-        } finally {
-          setAiLoading(false)
         }
       }
 
       loadData()
     }
-  }, [user, isAdmin, fetchSettings])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isAdmin]) // fetchSettings and fetchAIConfig are stable refs from Zustand
 
   // Combine store error with local error
   useEffect(() => {
@@ -415,7 +411,11 @@ export default function SettingsPage() {
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-primary-900">
                 AI PROVIDER
               </h2>
-              <AIProviderSettings initialConfig={aiConfig} isLoading={aiLoading} />
+              <AIProviderSettings
+                initialConfig={aiConfig}
+                isLoading={aiLoading}
+                onConfigUpdate={updateAIConfig}
+              />
             </div>
           )}
         </div>
