@@ -7,7 +7,7 @@ interface OKCardProps {
   insight: Insight
   isExpanded: boolean
   onExpand: () => void
-  onGotIt: () => void
+  onGotIt?: () => void
   isLoading?: boolean
 }
 
@@ -20,8 +20,8 @@ export default function OKCard({
 }: OKCardProps) {
   // Extract impact amount and suggested action for supporting line
   // Format: "impact amount · suggested action" - Figma 1.8
-  const impactAmount = insight.supporting_numbers.find(n => 
-    n.label.toLowerCase().includes('impact') || 
+  const impactAmount = insight.supporting_numbers.find(n =>
+    n.label.toLowerCase().includes('impact') ||
     n.label.toLowerCase().includes('change') ||
     n.label.toLowerCase().includes('difference') ||
     n.label.toLowerCase().includes('vs')
@@ -47,7 +47,7 @@ export default function OKCard({
               <p className="break-words text-xs leading-relaxed text-text-quaternary-500">
                 {impactAmount && (
                   <span className="text-text-brand-tertiary-600 font-medium">
-                    {typeof impactAmount.value === 'number' 
+                    {typeof impactAmount.value === 'number'
                       ? `${impactAmount.value >= 0 ? '+' : '-'}$${Math.abs(impactAmount.value).toLocaleString()}`
                       : impactAmount?.value || ''}
                   </span>
@@ -60,13 +60,15 @@ export default function OKCard({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {/* Got it button */}
-          <button
-            onClick={onGotIt}
-            disabled={isLoading}
-            className="rounded-md border border-border-primary bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Loading...' : 'Got it'}
-          </button>
+          {onGotIt && (
+            <button
+              onClick={onGotIt}
+              disabled={isLoading}
+              className="rounded-md border border-border-primary bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Loading...' : 'Got it'}
+            </button>
+          )}
           {/* Chevron for expand */}
           <button
             onClick={onExpand}

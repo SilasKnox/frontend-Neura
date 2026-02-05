@@ -114,11 +114,11 @@ export default function OverviewPage() {
     , [data?.insights])
 
   const okInsights = useMemo(() =>
-    data?.insights.filter(i => i.severity === 'medium' && !i.is_marked_done) || []
+    data?.insights.filter(i => i.severity === 'medium' && !i.is_marked_done && !i.is_acknowledged) || []
     , [data?.insights])
 
   const resolvedInsights = useMemo(() =>
-    data?.insights.filter(i => i.is_marked_done).slice(0, 5) || []
+    data?.insights.filter(i => i.is_marked_done || i.is_acknowledged).slice(0, 5) || []
     , [data?.insights])
 
   const handleResolve = async (insightId: string) => {
@@ -485,7 +485,6 @@ export default function OverviewPage() {
                       }}
                       isExpanded={expandedCardId === `upcoming-${i}`}
                       onExpand={() => setExpandedCardId(expandedCardId === `upcoming-${i}` ? null : `upcoming-${i}`)}
-                      onGotIt={() => { }}
                       isLoading={false}
                     />
                   ))}
@@ -505,18 +504,26 @@ export default function OverviewPage() {
                       key={insight.insight_id}
                       className="flex items-center gap-3"
                     >
-                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g clipPath="url(#clip0_472_401)">
-                          <path d="M14.6667 7.3904V8.00373C14.6659 9.44135 14.2004 10.8402 13.3396 11.9916C12.4788 13.1431 11.2689 13.9854 9.89028 14.393C8.51166 14.8006 7.03821 14.7517 5.68969 14.2535C4.34116 13.7552 3.18981 12.8345 2.40735 11.6284C1.62488 10.4224 1.25323 8.99578 1.34783 7.56128C1.44242 6.12678 1.99818 4.76129 2.93223 3.66845C3.86628 2.57561 5.12856 1.81399 6.53083 1.49717C7.9331 1.18034 9.40022 1.32529 10.7134 1.9104M14.6667 2.66659L8.00004 9.33992L6.00004 7.33992" stroke="#17B26A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_472_401">
-                            <rect width="16" height="16" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
+                      {insight.is_marked_done ? (
+                        <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clipPath="url(#clip0_472_401)">
+                            <path d="M14.6667 7.3904V8.00373C14.6659 9.44135 14.2004 10.8402 13.3396 11.9916C12.4788 13.1431 11.2689 13.9854 9.89028 14.393C8.51166 14.8006 7.03821 14.7517 5.68969 14.2535C4.34116 13.7552 3.18981 12.8345 2.40735 11.6284C1.62488 10.4224 1.25323 8.99578 1.34783 7.56128C1.44242 6.12678 1.99818 4.76129 2.93223 3.66845C3.86628 2.57561 5.12856 1.81399 6.53083 1.49717C7.9331 1.18034 9.40022 1.32529 10.7134 1.9104M14.6667 2.66659L8.00004 9.33992L6.00004 7.33992" stroke="#17B26A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_472_401">
+                              <rect width="16" height="16" fill="white" />
+                            </clipPath>
+                          </defs>
+                        </svg>
+                      ) : (
+                        <svg className="h-4 w-4 shrink-0 text-text-quaternary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                       <span className="min-w-0 flex-1 break-words text-sm font-medium text-text-primary-900">{insight.title}</span>
-                      <span className="text-xs text-text-quaternary-500">Resolved</span>
+                      <span className="text-xs text-text-quaternary-500">
+                        {insight.is_marked_done ? 'Resolved' : 'Acknowledged'}
+                      </span>
                       <span className="text-xs text-text-quaternary-500">
                         {new Date(insight.generated_at).toLocaleDateString('en-US', {
                           month: 'short',

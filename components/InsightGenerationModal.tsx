@@ -78,6 +78,19 @@ export default function InsightGenerationModal({
 
         if (!isMountedRef.current) return
 
+        // Validate data freshness before updating state
+        // This prevents the "glitch" where we briefly show the *previous* sync's completed state
+        if (response.updated_at) {
+          const statusUpdatedAt = new Date(response.updated_at).getTime()
+          // Allow for small clock skew (5s), but reject data clearly from before the trigger
+          if (statusUpdatedAt < triggerTimestampRef.current - 5000) {
+            // Stale data - ignore and continue polling
+            const interval = 1000 // Fast retry while waiting for fresh data
+            pollTimeoutRef.current = setTimeout(pollStatus, interval)
+            return
+          }
+        }
+
         setStatus(response)
         pollCounterRef.current++
 
