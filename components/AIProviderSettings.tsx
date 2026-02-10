@@ -215,7 +215,7 @@ export default function AIProviderSettings({ initialConfig, isLoading = false, o
     // Loading Skeleton
     if (loading) {
         return (
-            <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4 space-y-4">
+            <div className="rounded-md border border-border-secondary dark:border-[#333] bg-bg-secondary-subtle dark:bg-bg-secondary p-4 space-y-4">
                 {/* Provider Skeleton */}
                 <div className="space-y-1.5">
                     <Skeleton className="h-3 w-16 rounded" />
@@ -244,7 +244,7 @@ export default function AIProviderSettings({ initialConfig, isLoading = false, o
     }
 
     return (
-        <div className="rounded-md border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4 space-y-5">
+        <div className="rounded-md border border-border-secondary dark:border-[#333] bg-bg-secondary-subtle dark:bg-bg-secondary p-4 space-y-5">
             {/* Error Message */}
             {error && (
                 <div className="rounded-md bg-bg-error-secondary p-3 text-sm text-[#d92d20]">
@@ -261,7 +261,7 @@ export default function AIProviderSettings({ initialConfig, isLoading = false, o
                     <select
                         value={provider}
                         onChange={(e) => setProvider(e.target.value)}
-                        className="w-full appearance-none rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
+                        className="w-full appearance-none rounded-md border border-border-secondary dark:border-[#333] bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
                     >
                         {Object.entries(PROVIDER_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>
@@ -302,14 +302,14 @@ export default function AIProviderSettings({ initialConfig, isLoading = false, o
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
                             placeholder="e.g. gpt-4-32k"
-                            className="w-full rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
+                            className="w-full rounded-md border border-border-secondary dark:border-[#333] bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
                         />
                     ) : (
                         <>
                             <select
                                 value={model}
                                 onChange={(e) => setModel(e.target.value)}
-                                className="w-full appearance-none rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
+                                className="w-full appearance-none rounded-md border border-border-secondary dark:border-[#333] bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
                             >
                                 {PROVIDER_MODELS[provider]?.map((m) => (
                                     <option key={m} value={m}>
@@ -344,7 +344,7 @@ export default function AIProviderSettings({ initialConfig, isLoading = false, o
                         placeholder={`Enter ${PROVIDER_LABELS[provider]} API Key`}
                         autoComplete="new-password"
                         readOnly
-                        className="w-full rounded-md border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
+                        className="w-full rounded-md border border-border-secondary dark:border-[#333] bg-bg-primary px-3 py-2 text-sm text-text-primary-900 focus:border-text-brand-tertiary-600 focus:outline-none focus:ring-1 focus:ring-text-brand-tertiary-600"
                     />
                     <button
                         type="button"
@@ -370,7 +370,7 @@ export default function AIProviderSettings({ initialConfig, isLoading = false, o
                 <button
                     onClick={handleTestConnection}
                     disabled={testing}
-                    className="rounded-md border border-border-secondary px-3 py-2 text-sm font-medium text-text-secondary-700 hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-md border border-border-secondary dark:border-[#333] px-3 py-2 text-sm font-medium text-text-secondary-700 hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {testing ? 'Testing...' : 'Test Connection'}
                 </button>
