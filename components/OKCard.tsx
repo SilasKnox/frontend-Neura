@@ -29,7 +29,7 @@ export default function OKCard({
   const suggestedAction = insight.recommended_actions[0] || ''
 
   return (
-    <div className="rounded-tl-2xl rounded-bl-2xl rounded-tr-lg rounded-br-lg border border-border-secondary bg-bg-secondary-subtle dark:bg-bg-secondary p-4">
+    <div className="rounded-tl-2xl rounded-bl-2xl rounded-tr-lg rounded-br-lg border border-border-secondary dark:border-[#333] bg-bg-secondary-subtle dark:bg-bg-secondary p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* OK Badge - Figma 1.8: outlined, not filled */}
@@ -64,7 +64,7 @@ export default function OKCard({
             <button
               onClick={onGotIt}
               disabled={isLoading}
-              className="rounded-md border border-border-primary bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-md border border-border-primary dark:border-[#333] bg-bg-primary dark:bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Loading...' : 'Got it'}
             </button>

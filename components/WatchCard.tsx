@@ -113,6 +113,7 @@ export default function WatchCard({
         </span>
       )}
 
+      {/* Top section: pr-24 only for badge/title area to avoid the timeframe badge */}
       <div className="pr-24">
         {/* Badges Row - WATCH (sm Warning) + Confidence (sm Gray, icon leading) */}
         <div className="mb-2 flex items-center gap-2">
@@ -153,7 +154,10 @@ export default function WatchCard({
             </span>
           </div>
         )}
+      </div>
 
+      {/* Content below the timeframe badge — no pr-24, equal left/right spacing */}
+      <div>
         {/* Summary - dark: #F7F7F7 Text sm/Regular */}
         <p className="mb-3 break-words text-sm leading-relaxed text-text-secondary-700 dark:text-[#F7F7F7]">{insight.summary}</p>
 
@@ -161,43 +165,43 @@ export default function WatchCard({
         {suggestedAction && (
           <div className="mb-6 rounded-md border p-3 bg-[#FEF0C7] border-[#F79009]/40 dark:border-[#93370D] dark:bg-[#792E0D]">
             <p className="text-xs font-semibold text-[#F89C20] mb-1 dark:text-[#F79009]">Suggested action</p>
-            <p className="text-sm text-[#F89C20] dark:text-[#F79009]">{suggestedAction}</p>
+            <p className="text-sm text-[#F89C20] dark:text-[#F7F7F7]">{suggestedAction}</p>
           </div>
         )}
 
         {/* First horizontal line + spacing (after suggested action); color from CSS var (dark #742C0C) */}
         <div className="border-t pt-6 watch-card-divider-line">
           {/* Bottom Row - How we worked this out #F79009; Resolve Secondary */}
-          <div className="flex h-5 items-center justify-between">
-          <button
-            onClick={onExpand}
-            className="flex items-center gap-1 text-sm font-semibold text-[#F79009] hover:underline cursor-pointer dark:font-normal"
-          >
-            {/* Light: right-pointing chevron, rotates 90 when expanded */}
-            <svg className={`h-4 w-4 transition-transform dark:hidden ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            {/* Dark: chevron-down (Figma 12), rotates 180 when expanded */}
-            <svg className={`h-4 w-4 transition-transform hidden dark:block ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-            How we worked this out
-          </button>
-          <button
-            onClick={onResolve}
-            disabled={isLoading}
-            className="rounded-md border border-border-primary bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
+          <div className="flex min-h-5 items-center justify-between">
+            <button
+              onClick={onExpand}
+              className="flex items-center gap-1 text-sm font-semibold text-[#F79009] hover:underline cursor-pointer dark:font-normal"
+            >
+              {/* Light: right-pointing chevron, rotates 90 when expanded */}
+              <svg className={`h-4 w-4 transition-transform dark:hidden ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              {/* Dark: chevron-down (Figma 12), rotates 180 when expanded */}
+              <svg className={`h-4 w-4 transition-transform hidden dark:block ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              How we worked this out
+            </button>
+            <button
+              onClick={onResolve}
+              disabled={isLoading}
+              className="rounded-md border border-border-primary bg-bg-primary px-4 py-1.5 text-sm font-medium text-text-primary-900 transition-colors hover:bg-bg-secondary whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
               dark:border-[#742C0C] dark:bg-[#2a2a2a] dark:text-[#F7F7F7] dark:hover:bg-[#1f1f1f]"
-          >
-            {isLoading ? 'Resolving...' : 'Resolve'}
-          </button>
+            >
+              {isLoading ? 'Resolving...' : 'Resolve'}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Second horizontal line + expanded content - same width as first line (pr-24); Frame 51 dark */}
+      {/* Second horizontal line + expanded content - no pr-24 for equal spacing; Frame 51 dark */}
       {isExpanded && (
-        <div className="mt-8 space-y-4 border-t pt-6 pr-24 watch-card-divider-line dark:rounded-b-2xl dark:bg-[#4E1D09]">
+        <div className="mt-8 space-y-4 border-t pt-6 watch-card-divider-line dark:rounded-b-2xl dark:bg-[#4E1D09]">
           {/* WHAT WE'RE SEEING - Overline #F7F7F7; Ellipse 4x4 #F79009; Text xs/Regular #F7F7F7 */}
           <div>
             <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-primary-900 dark:text-[#F7F7F7]">
@@ -240,8 +244,7 @@ export default function WatchCard({
                 <span
                   key={i}
                   className="rounded-full border px-3 py-1 text-xs font-medium watch-inputs-used-pill bg-transparent text-[#F79009]
-                    dark:bg-[#F79009] dark:px-2.5 dark:py-0.5"
-                  style={{ color: 'var(--watch-inputs-used-text, #F79009)' }}
+                    dark:bg-[#F79009] dark:px-2.5 dark:py-0.5 dark:text-white dark:border-transparent"
                 >
                   {input}
                 </span>
@@ -271,7 +274,7 @@ export default function WatchCard({
 
           {/* Data Notes Warning - dark mode styling */}
           {insight.data_notes && (
-            <div className="rounded-md bg-[#fef3c7] border border-[#fbbf24] p-3 dark:bg-[#78350f]/20 dark:border-[#742C0C]">
+            <div className="rounded-md bg-[#fef3c7] border border-[#fbbf24] p-3 dark:bg-[#78350f]/40 dark:border-[#742C0C]">
               <div className="flex items-start gap-2">
                 <svg className="h-5 w-5 shrink-0 text-[#d97706] dark:text-[#fbbf24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -282,7 +285,7 @@ export default function WatchCard({
           )}
 
           {/* Footer - Line border from var (dark #742C0C); text color from var (dark #F7F7F7); spacing between "Based on..." and "Updated..." */}
-          <div className="flex h-5 items-center justify-between border-t pt-4 text-xs watch-card-divider-line watch-card-footer-text dark:text-sm" style={{ color: 'var(--watch-footer-text)' }}>
+          <div className="flex min-h-5 items-center justify-between border-t pt-4 text-xs watch-card-divider-line watch-card-footer-text dark:text-sm" style={{ color: 'var(--watch-footer-text)' }}>
             <div className="flex items-center gap-2 flex-wrap">
               <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
